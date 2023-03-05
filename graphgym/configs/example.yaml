@@ -1,12 +1,13 @@
 # The recommended basic settings for GNN
 out_dir: results
 dataset:
-  format: PyG
-  name: Cora
+  name: protein
+  dir: /Users/cgu3/Library/CloudStorage/OneDrive-InsideMDAnderson/proteomics/project/PPI-for-protein-detection/data/test-data
+  protein_filename: combined_protein_7103_processed.csv
+  interaction_filename: STRING-interaction-swiss.csv
   task: node
   task_type: classification
   transductive: true
-  split: [0.8, 0.2]
   transform: none
 train:
   batch_size: 32
@@ -21,10 +22,10 @@ gnn:
   layers_pre_mp: 1
   layers_mp: 2
   layers_post_mp: 1
-  dim_inner: 256
+  dim_inner: 22
   layer_type: generalconv
   stage_type: stack
-  batchnorm: true
+  batchnorm: false
   act: prelu
   dropout: 0.0
   agg: add
@@ -32,4 +33,4 @@ gnn:
 optim:
   optimizer: adam
   base_lr: 0.01
-  max_epoch: 400
+  max_epoch: 5

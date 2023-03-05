@@ -1,9 +1,8 @@
 import logging
 import os
 
-import custom_graphgym  # noqa, register custom modules
+import custom_graphgym # noqa, register custom modules
 import torch
-
 from torch_geometric import seed_everything
 from torch_geometric.graphgym.cmd_args import parse_args
 from torch_geometric.graphgym.config import (
@@ -45,6 +44,8 @@ if __name__ == '__main__':
         logging.info(cfg)
         cfg.params = params_count(model)
         logging.info('Num parameters: %s', cfg.params)
+
+        # custom_graphgym.train.protein.train_protein(logging, model, datamodule.loaders, )
         train(model, datamodule, logger=True)
 
     # Aggregate results from different seeds
