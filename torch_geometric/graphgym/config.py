@@ -444,6 +444,9 @@ def set_cfg(cfg):
     # Perform ReLU inplace
     cfg.mem.inplace = False
 
+    cfg.dataset.protein_filename='none'
+    cfg.dataset.interaction_filename = 'none'
+
     # Set user customized cfgs
     for func in register.config_dict.values():
         func(cfg)

@@ -182,9 +182,19 @@ def load_dataset():
     format = cfg.dataset.format
     name = cfg.dataset.name
     dataset_dir = cfg.dataset.dir
+
+
     # Try to load customized data format
     for func in register.loader_dict.values():
-        dataset = func(format, name, dataset_dir)
+        if name == 'protein':
+            protein_filename = cfg.dataset.protein_filename
+            interaction_filename = cfg.dataset.interaction_filename
+            func = register.loader_dict['protein']
+            dataset = func(dataset_dir=dataset_dir,
+                           protein_filename=protein_filename,
+                           interaction_filename=interaction_filename)
+        else:
+            dataset = func(format, name, dataset_dir)
         if dataset is not None:
             return dataset
     # Load from Pytorch Geometric dataset

@@ -22,3 +22,4 @@ def set_cfg_example(cfg):
 
     # then argument can be specified within the group
     cfg.example_group.example_arg = 'example'
+
