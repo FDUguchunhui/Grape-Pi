@@ -1,15 +1,57 @@
 # Predict protein detection using protein-protein-interaction by semi-supervised graph neural networks for shotgun proteomics
 
 ## Introduction
+Protein-protein-interaction-Graph-neural-network (PPI-GNN) is a deep learning framework for predict protein existence based on
+protein feature generated from Mass spectrometry (MS) instrument/analysis software and protein-protein-interaction (PPI)
+network.
 
+The main idea is to  promote proteins with medium evidence but are supported by protein-protein-interaction information
+as existent. Unlike traditional network analysis, PPI information is used with strong assumptions and restricted to
+specific sub-network structures (e.g. clique), PPI-GNN model is a fully data-driven model and can be much more versatile. 
+
+The framework was built on top of torch-geometry and pytorch. GraphyGym is used for allowing model training with a
+variety of hyperparameter combination with less computation and time using the idea of random-design-space searching. 
 
 ## Usage
 
+```bash
+python main.py --cfg configs/example.yaml --repeat 3
+```
+
 ### Data preparation
+
+The PPI-GNN framework features a built-in module for easily load raw protein and PPI data into torch.geometry.dataset 
+format that can be used for training model. The only things needed is to provide a root directory for where to
+find the raw file, and the name of the raw protein data file and raw PPI data file in the configure file.
+
+```ymal
+name: protein
+dir: /Users/cgu3/Library/CloudStorage/OneDrive-InsideMDAnderson/proteomics/project/PPI-for-protein-detection/data/test-data
+protein_filename: combined_protein_7103_processed.csv
+interaction_filename: STRING-interaction-swiss.csv
+```
+
+The root folder should look like this, with a fold named "raw" and the "protein_filename" and "interaction_filename"
+should be inside the raw folder.
+
+```dir
+root
+    raw
+        protein_filename
+        interaction_filename
+```
+
+After the programming first running, a new "processed" folder will create under the root directory which stores the
+converted torch_geometry.data.dataset format and additional processed files. This allows a one-time processing and the 
+next time data the same data is used, the processed file will be loaded directly to save time.
+
 
 ### run
 
 
+## Additional example
+
+### modeling with metabolomics
 
 
 
