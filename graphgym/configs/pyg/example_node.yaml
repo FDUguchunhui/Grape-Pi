@@ -15,7 +15,7 @@ train:
   sampler: full_batch
 model:
   type: gnn
-  loss_fun: cross_entropy
+  loss_fun: protein_semisupervised
   edge_decoding: dot
   graph_pooling: add
 gnn:

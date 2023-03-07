@@ -49,6 +49,7 @@ def train(model: GraphGymModule, datamodule, logger: bool = True,
         max_epochs=cfg.optim.max_epoch,
         accelerator=cfg.accelerator,
         devices=cfg.devices,
+        log_every_n_steps=1
     )
 
     trainer.fit(model, datamodule=datamodule)
