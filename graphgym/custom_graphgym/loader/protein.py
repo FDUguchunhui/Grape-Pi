@@ -78,9 +78,9 @@ class ProteinDataset(InMemoryDataset):
         data = split_transformer(data)
 
         # set mask only to labeled data for using GraphGym framework
-        data.train_mask = torch.logical_and(data.train_mask, data.loss_mask)
-        data.val_mask = torch.logical_and(data.val_mask, data.loss_mask)
-        data.test_mask = torch.logical_and(data.test_mask, data.loss_mask)
+        # data.train_mask = torch.logical_and(data.train_mask, data.loss_mask)
+        # data.val_mask = torch.logical_and(data.val_mask, data.loss_mask)
+        # data.test_mask = torch.logical_and(data.test_mask, data.loss_mask)
         data.train = data.train_mask
         data.val = data.val_mask
         data.test = data.test_mask
