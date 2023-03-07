@@ -18,6 +18,8 @@ from torch_geometric.graphgym.train import GraphGymDataModule, train
 from torch_geometric.graphgym.utils.agg_runs import agg_runs
 from torch_geometric.graphgym.utils.comp_budget import params_count
 from torch_geometric.graphgym.utils.device import auto_select_device
+from torch_geometric.graphgym import optim
+from torch_geometric.graphgym import logger
 
 if __name__ == '__main__':
     # Load cmd line args
@@ -45,8 +47,15 @@ if __name__ == '__main__':
         cfg.params = params_count(model)
         logging.info('Num parameters: %s', cfg.params)
 
-        # custom_graphgym.train.protein.train_protein(logging, model, datamodule.loaders, )
-        train(model, datamodule, logger=True)
+        loggers = logger.create_logger()
+        optimizer = optim.create_optimizer(model.model.parameters(), cfg.optim)
+        scheduler = optim.create_scheduler(optimizer, cfg.optim)
+        custom_graphgym.train.protein.train_protein(loggers=loggers,
+                                                    loaders=datamodule.loaders,
+                                                    model=model,
+                                                    optimizer=optimizer,
+                                                    scheduler=scheduler)
+        # train(model, datamodule, logger=True)
 
     # Aggregate results from different seeds
     agg_runs(cfg.out_dir, cfg.metric_best)

@@ -19,7 +19,7 @@ def train_epoch(logger, loader, model, optimizer, scheduler):
     time_start = time.time()
     for data in loader:
         optimizer.zero_grad()
-        data.to(torch.device(cfg.device))
+        # data.to(torch.device(cfg.device))
         pred, true = model(data)
         # semi-supervised learning only training on labeled data
         mask = torch.logical_and(data.val_mask, data.loss_mask)
