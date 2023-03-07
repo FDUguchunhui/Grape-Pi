@@ -17,16 +17,16 @@ share:
   dim_out: 2
 train:
   batch_size: 1
-  eval_period: 10
+  eval_period: 1
   ckpt_period: 10
 model:
   type: gnn
-  loss_fun: cross_entropy
+  loss_fun: binary_cross_entropy_with_weight
+  loss_pos_weight: 0.2719
 gnn:
   layers_pre_mp: 1
   layers_mp: 2
   layers_post_mp: 1
-
   dim_inner: 22
   layer_type: gcnconv
   stage_type: stack
@@ -40,4 +40,5 @@ optim:
   optimizer: adam
   base_lr: 0.01
   max_epoch: 50
+
 

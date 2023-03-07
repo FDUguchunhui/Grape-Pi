@@ -223,7 +223,10 @@ def set_dataset_info(dataset):
     except Exception:
         cfg.share.dim_in = 1
     try:
-        if cfg.dataset.task_type == 'classification':
+        # if dataset name is protein, use the dim_out from config file
+        if cfg.dataset.name == 'protein':
+            ...
+        elif cfg.dataset.task_type == 'classification':
             cfg.share.dim_out = torch.unique(dataset._data.y).shape[0]
         else:
             cfg.share.dim_out = dataset._data.y.shape[1]

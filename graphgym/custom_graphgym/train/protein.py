@@ -19,14 +19,15 @@ def train_epoch(logger, loader, model, optimizer, scheduler):
     time_start = time.time()
     for data in loader:
         optimizer.zero_grad()
-        # data.to(torch.device(cfg.device))
+        data.to(torch.device(cfg.accelerator))
         pred, true = model(data)
         # semi-supervised learning only training on labeled data
-        mask = torch.logical_and(data.val_mask, data.loss_mask)
+        mask = torch.logical_and(data.train_mask, data.loss_mask)
         loss, pred_score = compute_loss(pred[mask], true[mask])
         loss.backward()
         optimizer.step()
-        logger.update_stats(true=true.detach().cpu(),
+        # only use labeled true
+        logger.update_stats(true=true[mask].detach().cpu(),
                             pred=pred_score.detach().cpu(), loss=loss.item(),
                             lr=scheduler.get_last_lr()[0],
                             time_used=time.time() - time_start,
@@ -38,11 +39,13 @@ def train_epoch(logger, loader, model, optimizer, scheduler):
 def eval_epoch(logger, loader, model):
     model.eval()
     time_start = time.time()
-    for batch in loader:
-        batch.to(torch.device(cfg.device))
-        pred, true = model(batch)
-        loss, pred_score = compute_loss(pred, true)
-        logger.update_stats(true=true.detach().cpu(),
+    for data in loader:
+        data.to(torch.device(cfg.accelerator))
+        pred, true = model(data)
+        # semi-supervised learning only training on labeled data
+        mask = torch.logical_and(data.val_mask, data.loss_mask)
+        loss, pred_score = compute_loss(pred[mask], true[mask])
+        logger.update_stats(true=true[mask].detach().cpu(),
                             pred=pred_score.detach().cpu(), loss=loss.item(),
                             lr=0, time_used=time.time() - time_start,
                             params=cfg.params)
@@ -65,7 +68,7 @@ def train_protein(loggers, loaders, model, optimizer, scheduler):
         train_epoch(loggers[0], loaders[0], model, optimizer, scheduler)
         loggers[0].write_epoch(cur_epoch)
         if is_eval_epoch(cur_epoch):
-            for i in range(1, num_splits):
+            for i in range(1, num_splits-1):
                 eval_epoch(loggers[i], loaders[i], model)
                 loggers[i].write_epoch(cur_epoch)
         if is_ckpt_epoch(cur_epoch):
