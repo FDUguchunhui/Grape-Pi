@@ -69,6 +69,7 @@ class ProteinDataset(InMemoryDataset):
 
         # the mask used when calculating loss
         loss_mask = np.where(y == -1, 0, 1)
+        y = torch.where(y == -1, 0, y)
         data = Data(x=x, edge_index=edge_index, split=1, edge_attr=edge_attr, y=y,
                     loss_mask=torch.tensor(loss_mask, dtype=torch.long))
 
