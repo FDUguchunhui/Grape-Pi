@@ -29,3 +29,4 @@ examples/*.pdf
 
 !torch_geometric/data/
 !test/data/
+graphgym/configs/protein_grid_protein/
