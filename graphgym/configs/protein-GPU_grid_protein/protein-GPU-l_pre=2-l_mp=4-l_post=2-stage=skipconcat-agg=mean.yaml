@@ -1,0 +1,43 @@
+accelerator: auto
+dataset:
+  dir: ~/data/test-data
+  edge_encoder: false
+  encoder: false
+  format: PyG
+  interaction_filename: STRING-interaction-swiss.csv
+  name: protein
+  node_encoder: false
+  protein_filename: combined_protein_7103_processed.csv
+  task: node
+  task_type: classification
+  transductive: true
+  transform: none
+gnn:
+  act: relu
+  agg: mean
+  batchnorm: false
+  dim_inner: 22
+  dropout: 0.0
+  head: protein
+  layer_type: gcnconv
+  layers_mp: 4
+  layers_post_mp: 2
+  layers_pre_mp: 2
+  normalize_adj: false
+  stage_type: skipconcat
+model:
+  loss_fun: binary_cross_entropy_with_weight
+  loss_pos_weight: 0.2719
+  type: gnn
+optim:
+  base_lr: 0.001
+  max_epoch: 30
+  optimizer: adam
+out_dir: results/protein-GPU_grid_protein
+share:
+  dim_in: 11
+  dim_out: 2
+train:
+  batch_size: 1
+  ckpt_period: 10
+  eval_period: 1

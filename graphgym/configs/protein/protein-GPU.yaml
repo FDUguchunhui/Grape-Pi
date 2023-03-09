@@ -4,7 +4,7 @@ accelerator: auto
 dataset:
   format: PyG
   name: protein
-  dir: /Users/cgu3/Library/CloudStorage/OneDrive-InsideMDAnderson/proteomics/project/PPI-for-protein-detection/data/test-data
+  dir: ~/data/test-data
   protein_filename: combined_protein_7103_processed.csv
   interaction_filename: STRING-interaction-swiss.csv
   task: node
