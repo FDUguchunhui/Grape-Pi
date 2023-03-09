@@ -7,14 +7,17 @@ from torch_geometric.data import Data
 from torch_geometric.data import InMemoryDataset
 from torch_geometric.graphgym.register import register_loader
 import torch_geometric.transforms as T
-
+from torch_geometric.graphgym.config import cfg
 
 
 @register_loader('protein')
-def load_dataset_proteins(dataset_dir, protein_filename, interaction_filename):
-    dataset_raw = ProteinDataset(dataset_dir, protein_filename, interaction_filename)
-    return dataset_raw
-
+def load_dataset_proteins(format, name, dataset_dir):
+    if format == 'PyG':
+        if name == 'protein':
+            protein_filename = cfg.dataset.protein_filename
+            interaction_filename = cfg.dataset.interaction_filename
+            dataset_raw = ProteinDataset(dataset_dir, protein_filename, interaction_filename)
+            return dataset_raw
 
 class ProteinDataset(InMemoryDataset):
     def __init__(self, root, protein_filename, interaction_filename, transform=None, pre_transform=None,
