@@ -1,8 +1,8 @@
 # The recommended basic settings for GNN
 out_dir: results
-accelerator: cuda
+accelerator: auto
 dataset:
-  format: 'PyG'
+  format: PyG
   name: protein
   dir: /Users/cgu3/Library/CloudStorage/OneDrive-InsideMDAnderson/proteomics/project/PPI-for-protein-detection/data/test-data
   protein_filename: combined_protein_7103_processed.csv

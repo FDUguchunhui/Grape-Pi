@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-CONFIG=${CONFIG:-protein-GPU}
+CONFIG=${CONFIG:-example-hpc-cpu}
 GRID=${GRID:-protein}
 REPEAT=${REPEAT:-3}
 MAX_JOBS=${MAX_JOBS:-100}
@@ -9,7 +9,7 @@ MAIN=${MAIN:-main}
 
 # generate configs (after controlling computational budget)
 # please remove --config_budget, if don't control computational budget
-python configs_gen.py --config configs/protein/${CONFIG}.yaml \
+python configs_gen.py --config configs/${CONFIG}.yaml \
   --grid grids/${GRID}.txt \
   --out_dir configs
 #python configs_gen.py --config configs/ChemKG/${CONFIG}.yaml --config_budget configs/ChemKG/${CONFIG}.yaml --grid grids/ChemKG/${GRID}.txt --out_dir configs

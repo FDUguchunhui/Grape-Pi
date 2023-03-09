@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 
+<<<<<<< HEAD
+CONFIG=${CONFIG:-example-hpc-cpu}
+=======
 CONFIG=${CONFIG:-protein-GPU}
+>>>>>>> 98d3c29bd85918533873666c98eae56d7d98da65
 GRID=${GRID:-protein}
 REPEAT=${REPEAT:-3}
 MAX_JOBS=${MAX_JOBS:-100}
