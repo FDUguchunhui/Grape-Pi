@@ -29,4 +29,3 @@ examples/*.pdf
 
 !torch_geometric/data/
 !test/data/
-graphgym/configs/*_grid_*/
