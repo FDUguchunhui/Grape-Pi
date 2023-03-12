@@ -1,6 +1,6 @@
 accelerator: auto
 dataset:
-  dir: ~/data/test-data
+  dir: /Users/cgu3/Library/CloudStorage/OneDrive-InsideMDAnderson/proteomics/project/PPI-for-protein-detection/data/test-data
   edge_encoder: false
   encoder: false
   format: PyG
