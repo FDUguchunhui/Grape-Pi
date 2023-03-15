@@ -2,7 +2,7 @@
 out_dir: results
 dataset:
   name: protein_batch
-  dir: /Users/cgu3/Library/CloudStorage/OneDrive-InsideMDAnderson/proteomics/project/PPI-for-protein-detection/data/protein-batch
+  dir: ./data/batch
   task: node
   task_type: classification
   transductive: true
@@ -21,7 +21,7 @@ model:
   type: gnn
   loss_fun: binary_cross_entropy_with_weight
   # the weight is calculated by num_negative_sample/num_positive_sample
-  loss_pos_weight: 0.2719
+  loss_pos_weight: -1
 gnn:
   layers_pre_mp: 1
   layers_mp: 2
