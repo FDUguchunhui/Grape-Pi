@@ -25,7 +25,7 @@ model:
   # the weight is calculated by num_negative_sample/num_positive_sample
   loss_pos_weight: -1.0
 gnn:
-  layers_pre_mgit p: 1
+  layers_pre_mp: 1
   layers_mp: 2
   layers_post_mp: 1
   dim_inner: 22

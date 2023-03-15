@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
-
-CONFIG=${CONFIG:-protein-GPU}
+CONFIG=${CONFIG:-protein}
 GRID=${GRID:-protein}
 REPEAT=${REPEAT:-3}
-MAX_JOBS=${MAX_JOBS:-100}
+MAX_JOBS=${MAX_JOBS:-10}
 SLEEP=${SLEEP:-1}
 MAIN=${MAIN:-main}
 

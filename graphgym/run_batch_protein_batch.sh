@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-CONFIG=${CONFIG:-protein-GPU}
+CONFIG=${CONFIG:-protein-batch}
 GRID=${GRID:-protein}
 REPEAT=${REPEAT:-3}
 MAX_JOBS=${MAX_JOBS:-10}

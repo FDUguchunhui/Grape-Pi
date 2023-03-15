@@ -1,0 +1,41 @@
+accelerator: auto
+dataset:
+  dir: ./data/single
+  edge_encoder: false
+  encoder: false
+  format: PyG
+  name: protein_batch
+  node_encoder: false
+  task: node
+  task_type: classification
+  transductive: true
+  transform: none
+gnn:
+  act: relu
+  agg: add
+  batchnorm: false
+  dim_inner: 22
+  dropout: 0.0
+  head: protein
+  layer_type: gcnconv
+  layers_mp: 4
+  layers_post_mp: 3
+  layers_pre_mp: 2
+  normalize_adj: false
+  stage_type: skipsum
+model:
+  loss_fun: binary_cross_entropy_with_weight
+  loss_pos_weight: -1.0
+  type: gnn
+optim:
+  base_lr: 0.01
+  max_epoch: 100
+  optimizer: adam
+out_dir: results/protein_grid_protein
+share:
+  dim_in: 11
+  dim_out: 2
+train:
+  batch_size: 1
+  ckpt_period: 10
+  eval_period: 1
