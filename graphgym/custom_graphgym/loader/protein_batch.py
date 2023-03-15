@@ -12,6 +12,7 @@ from torch_geometric.graphgym.register import register_loader
 import torch_geometric.transforms as T
 from typing import Any, Callable, List, Optional, Tuple, Union
 from torch_geometric.data.dataset import to_list
+from torch_geometric.graphgym.config import cfg
 
 @register_loader('protein_batch')
 def load_dataset_protein_batch(format, name, dataset_dir):
@@ -47,12 +48,6 @@ class ProteinBatchDataset(InMemoryDataset):
 
     @property
     def processed_file_names(self):
-        # raw_protein_dir = osp.join(self.root, 'raw
-        #
-        # /protein')
-        # protein_dir_list = os.listdir(raw_protein_dir)
-        # data_file_list = ['processed_' + protein_file for protein_file in protein_dir_list]
-        # return data_file_list
         return ['data.pt']
 
     def process(self):

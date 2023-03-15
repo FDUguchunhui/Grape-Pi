@@ -1,10 +1,10 @@
 # The recommended basic settings for GNN
 out_dir: results
+accelerator: auto
 dataset:
-  name: protein
-  dir: /Users/cgu3/Library/CloudStorage/OneDrive-InsideMDAnderson/proteomics/project/PPI-for-protein-detection/data/test-data
-  protein_filename: combined_protein_7103_processed.csv
-  interaction_filename: STRING-interaction-swiss.csv
+  format: PyG
+  name: protein_batch
+  dir: ./data/single
   task: node
   task_type: classification
   transductive: true
@@ -23,9 +23,9 @@ model:
   type: gnn
   loss_fun: binary_cross_entropy_with_weight
   # the weight is calculated by num_negative_sample/num_positive_sample
-  loss_pos_weight: 0.2719
+  loss_pos_weight: -1.0
 gnn:
-  layers_pre_mp: 1
+  layers_pre_mgit p: 1
   layers_mp: 2
   layers_post_mp: 1
   dim_inner: 22
@@ -34,12 +34,12 @@ gnn:
   batchnorm: false
   act: relu
   dropout: 0.0
-  agg: add
+  agg: add # agg only work when layer_type is generalconv
   normalize_adj: false
   head: protein
 optim:
   optimizer: adam
-  base_lr: 0.001
-  max_epoch: 30
+  base_lr: 0.01
+  max_epoch: 100
 
 
