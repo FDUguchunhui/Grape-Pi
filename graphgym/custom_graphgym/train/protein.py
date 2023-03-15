@@ -1,6 +1,7 @@
 import logging
 import time
 
+import numpy as np
 import torch
 
 from torch_geometric.graphgym.checkpoint import (
@@ -17,6 +18,9 @@ from torch_geometric.graphgym.utils.epoch import is_ckpt_epoch, is_eval_epoch
 def train_epoch(logger, loader, model, optimizer, scheduler):
     model.train()
     time_start = time.time()
+    total_loss = 0
+    total_pred_score = None
+    total_true = None
     for data in loader:
         optimizer.zero_grad()
         data.to(torch.device(cfg.accelerator))
@@ -26,13 +30,23 @@ def train_epoch(logger, loader, model, optimizer, scheduler):
         loss, pred_score = compute_loss(pred[mask], true[mask])
         loss.backward()
         optimizer.step()
+        total_loss += loss
+        if total_pred_score is None:
+            total_pred_score = pred_score.detach().cpu()
+        else:
+            total_pred_score = torch.cat([total_pred_score, pred_score.detach().cpu()])
+
+        if total_true is None:
+            total_true = true[mask].detach().cpu()
+        else:
+            total_true = torch.cat([total_true, true[mask].detach().cpu()])
         # only use labeled true
-        logger.update_stats(true=true[mask].detach().cpu(),
-                            pred=pred_score.detach().cpu(), loss=loss.item(),
-                            lr=scheduler.get_last_lr()[0],
-                            time_used=time.time() - time_start,
-                            params=cfg.params)
-        time_start = time.time()
+    logger.update_stats(true=total_true,
+                        pred=total_pred_score,
+                        loss=total_loss.item(),
+                        lr=scheduler.get_last_lr()[0],
+                        time_used=time.time() - time_start,
+                        params=cfg.params)
     scheduler.step()
 
 

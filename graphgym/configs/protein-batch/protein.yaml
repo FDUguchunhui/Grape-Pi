@@ -27,7 +27,7 @@ gnn:
   layers_mp: 2
   layers_post_mp: 1
   dim_inner: 22
-  layer_type: gcnconv
+  layer_type: sageconv
   stage_type: stack
   batchnorm: false
   act: relu

@@ -4,7 +4,7 @@ CONFIG=${CONFIG:-protein-GPU}
 GRID=${GRID:-protein}
 REPEAT=${REPEAT:-3}
 MAX_JOBS=${MAX_JOBS:-10}
-SLEEP=${SLEEP:-1}
+SLEEP=${SLEEP:-0}
 MAIN=${MAIN:-main}
 
 # generate configs (after controlling computational budget)
