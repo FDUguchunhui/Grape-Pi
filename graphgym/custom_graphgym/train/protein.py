@@ -53,18 +53,33 @@ def train_epoch(logger, loader, model, optimizer, scheduler):
 def eval_epoch(logger, loader, model):
     model.eval()
     time_start = time.time()
+
+    total_loss = 0
+    total_pred_score = None
+    total_true = None
     for data in loader:
         data.to(torch.device(cfg.accelerator))
         pred, true = model(data)
         # semi-supervised learning only training on labeled data
         mask = torch.logical_and(data.val_mask, data.loss_mask)
         loss, pred_score = compute_loss(pred[mask], true[mask])
-        logger.update_stats(true=true[mask].detach().cpu(),
-                            pred=pred_score.detach().cpu(), loss=loss.item(),
-                            lr=0, time_used=time.time() - time_start,
-                            params=cfg.params)
-        time_start = time.time()
+        total_loss += loss
+        if total_pred_score is None:
+            total_pred_score = pred_score.detach().cpu()
+        else:
+            total_pred_score = torch.cat([total_pred_score, pred_score.detach().cpu()])
 
+        if total_true is None:
+            total_true = true[mask].detach().cpu()
+        else:
+            total_true = torch.cat([total_true, true[mask].detach().cpu()])
+
+        logger.update_stats(true=total_true,
+                            pred=total_pred_score,
+                            loss=total_loss.item(),
+                            lr=0,
+                            time_used=time.time() - time_start,
+                            params=cfg.params)
 
 @register_train('protein')
 def train_protein(loggers, loaders, model, optimizer, scheduler):
