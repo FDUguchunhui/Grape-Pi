@@ -40,6 +40,7 @@ gnn:
 optim:
   optimizer: adam
   base_lr: 0.01
-  max_epoch: 100
+  max_epoch: 50
+  scheduler: none
 
 
