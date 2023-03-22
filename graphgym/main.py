@@ -19,7 +19,7 @@ from torch_geometric.graphgym.utils.agg_runs import agg_runs
 from torch_geometric.graphgym.utils.comp_budget import params_count
 from torch_geometric.graphgym.utils.device import auto_select_device
 from torch_geometric.graphgym import optim
-from torch_geometric.graphgym import logger
+from custom_graphgym.utils import logger
 
 if __name__ == '__main__':
     # Load cmd line args
