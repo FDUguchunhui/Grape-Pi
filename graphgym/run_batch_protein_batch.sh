@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 CONFIG=${CONFIG:-protein-batch}
-GRID=${GRID:-protein}
+GRID=${GRID:-protein-batch}
 REPEAT=${REPEAT:-3}
 MAX_JOBS=${MAX_JOBS:-10}
 SLEEP=${SLEEP:-0}

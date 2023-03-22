@@ -8,6 +8,5 @@ __all__ = [
     if isfile(f) and not f.endswith('__init__.py')
 ]
 
-cfg.dataset.protein_filename = 'protein.csv'
-cfg.dataset.interaction_filename = 'interaction.csv'
+
 cfg.model.loss_pos_weight = 1.0

@@ -5,7 +5,7 @@ dataset:
   dir: ./data/batch
   task: node
   task_type: classification
-  transductive: true
+  transductive: false
   transform: none
   encoder: false
   node_encoder: false
@@ -14,14 +14,20 @@ share:
   dim_in: 11
   dim_out: 2
 train:
-  batch_size: 1
+  batch_size: 2
   eval_period: 1
   ckpt_period: 10
+  sampler: neighbor
+  neighbor_sizes:
+  - 20
+  - 15
+  - 10
+  - 5
 model:
   type: gnn
   loss_fun: binary_cross_entropy_with_weight
   # the weight is calculated by num_negative_sample/num_positive_sample
-  loss_pos_weight: -1
+  loss_pos_weight: -1.0
 gnn:
   layers_pre_mp: 1
   layers_mp: 2
