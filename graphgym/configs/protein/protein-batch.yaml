@@ -44,6 +44,7 @@ gnn:
 optim:
   optimizer: adam
   base_lr: 0.001
-  max_epoch: 30
-
+  max_epoch: 50
+  # try not use schedule and check fluctuation of training curve
+  scheduler: none
 
