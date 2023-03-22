@@ -2,8 +2,8 @@
 
 CONFIG=${CONFIG:-protein-batch}
 GRID=${GRID:-protein}
-REPEAT=${REPEAT:-3}
-MAX_JOBS=${MAX_JOBS:-10}
+REPEAT=${REPEAT:-1}
+MAX_JOBS=${MAX_JOBS:-1}
 SLEEP=${SLEEP:-0}
 MAIN=${MAIN:-main}
 

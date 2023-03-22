@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 CONFIG=${CONFIG:-protein}
 GRID=${GRID:-protein}
-REPEAT=${REPEAT:-3}
-MAX_JOBS=${MAX_JOBS:-2}
+REPEAT=${REPEAT:-1}
+MAX_JOBS=${MAX_JOBS:-1}
 SLEEP=${SLEEP:-1}
 MAIN=${MAIN:-main}
 
