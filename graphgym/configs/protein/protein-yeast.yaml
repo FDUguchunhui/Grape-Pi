@@ -18,7 +18,7 @@ share:
   dim_out: 2
 train:
   batch_size: 1
-  eval_period: 1
+  eval_period: 10
   ckpt_period: 10
 model:
   type: gnn

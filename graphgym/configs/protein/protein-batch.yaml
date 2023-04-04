@@ -15,7 +15,7 @@ share:
   dim_out: 2
 train:
   batch_size: 2
-  eval_period: 1
+  eval_period: 10
   ckpt_period: 10
   sampler: neighbor
   neighbor_sizes:
