@@ -1,0 +1,51 @@
+# The recommended basic settings for GNN
+out_dir: results
+metric_best: accuracy
+dataset:
+  name: protein_batch
+  dir: ./data/yeast
+  task: node
+  task_type: classification
+  transductive: false
+  transform: none
+  encoder: false
+  node_encoder: false
+  edge_encoder: false
+share:
+  dim_in: 4
+  dim_out: 2
+train:
+  batch_size: 128
+  eval_period: 1
+  ckpt_period: 10
+  sampler: neighbor
+  neighbor_sizes:
+  - 20
+  - 15
+  - 10
+  - 5
+model:
+  type: gnn
+  loss_fun: binary_cross_entropy_with_weight
+  # the weight is calculated by num_negative_sample/num_positive_sample
+  loss_pos_weight: -1.0
+gnn:
+  layers_pre_mp: 1
+  layers_mp: 2
+  layers_post_mp: 1
+  dim_inner: 8
+  layer_type: sageconv
+  stage_type: skipsum
+  batchnorm: false
+  act: relu
+  dropout: 0.0
+  agg: add
+  normalize_adj: false
+  head: protein
+optim:
+  optimizer: adam
+  base_lr: 0.001
+  max_epoch: 50
+  # try not use schedule and check fluctuation of training curve
+  scheduler: none
+

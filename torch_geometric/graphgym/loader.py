@@ -26,8 +26,11 @@ from torch_geometric.loader import (
     GraphSAINTNodeSampler,
     GraphSAINTRandomWalkSampler,
     NeighborSampler,
+    NeighborLoader,
     RandomNodeLoader,
 )
+
+
 from torch_geometric.utils import (
     index_to_mask,
     negative_sampling,
@@ -255,8 +258,10 @@ def get_loader(dataset, sampler, batch_size, shuffle=True):
                                   shuffle=shuffle, num_workers=cfg.num_workers,
                                   pin_memory=True)
     elif sampler == "neighbor":
-        loader_train = NeighborSampler(
-            dataset[0], sizes=cfg.train.neighbor_sizes[:cfg.gnn.layers_mp],
+        data = dataset[0]
+        loader_train = NeighborLoader(
+            data, num_neighbors=cfg.train.neighbor_sizes[:cfg.gnn.layers_mp],
+            input_nodes=data.train_mask,
             batch_size=batch_size, shuffle=shuffle,
             num_workers=cfg.num_workers, pin_memory=True)
     elif sampler == "random_node":

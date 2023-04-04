@@ -11,7 +11,7 @@
 gnn.layers_pre_mp l_pre [1,2]
 gnn.layers_mp l_mp [2,4,6,8]
 gnn.layers_post_mp l_post [2,3]
-gnn.stage_type stage ['stack', skipsum','skipconcat']
+gnn.stage_type stage ['stack', 'skipsum','skipconcat']
 gnn.batchnorm bn [True,False]
 gnn.act act ['relu','prelu','swish']
 gnn.dropout drop [0.0,0.3,0.6]
