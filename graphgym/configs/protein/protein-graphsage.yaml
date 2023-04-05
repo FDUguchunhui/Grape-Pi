@@ -19,7 +19,7 @@ dataset:
     - protein.falsePositiveRate
   task: node
   task_type: classification
-  transductive: true
+  transductive: false
   transform: none
   encoder: false
   node_encoder: false
@@ -28,9 +28,15 @@ share:
   dim_in: 11
   dim_out: 2
 train:
-  batch_size: 1
+  batch_size: 128
   eval_period: 10
   ckpt_period: 10
+  sampler: neighbor
+  neighbor_sizes:
+    - 20
+    - 15
+    - 10
+    - 5
 model:
   type: gnn
   loss_fun: binary_cross_entropy_with_weight
@@ -41,8 +47,8 @@ gnn:
   layers_mp: 2
   layers_post_mp: 1
   dim_inner: 22
-  layer_type: gcnconv
-  stage_type: stack
+  layer_type: sageconv
+  stage_type: skipsum
   batchnorm: false
   act: relu
   dropout: 0.0

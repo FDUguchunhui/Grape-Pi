@@ -19,7 +19,7 @@ def load_dataset_protein_batch(format, name, dataset_dir):
     if format == 'PyG':
         if name == 'protein_batch':
             numeric_params = cfg.dataset.numeric_params
-            dataset_raw = ProteinBatchDataset(dataset_dir, numeric_params)
+            dataset_raw = ProteinBatchDataset(dataset_dir, numeric_params=numeric_params)
             return dataset_raw
 
 
@@ -30,9 +30,10 @@ class ProteinBatchDataset(InMemoryDataset):
         # dir: absolute path to a folder
         # file: absolute path to a file
         # filename: file name without any path information
+        self.numeric_params = numeric_params
         super().__init__(root, transform, pre_transform, pre_filter)
         self.data, self.slices = torch.load(self.processed_paths[0])
-        self.numeric_params = numeric_params
+
 
     @property
     def raw_file_names(self):

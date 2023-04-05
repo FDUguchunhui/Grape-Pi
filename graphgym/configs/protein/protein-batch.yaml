@@ -3,6 +3,18 @@ out_dir: results
 dataset:
   name: protein_batch
   dir: ./data/batch
+  numeric_params:
+    - protein.avgMass
+    - protein.MatchedProducts
+    - protein.matchedPeptides
+    - protein.digestPeps
+    - protein.seqCover(%)
+    - protein.MatchedPeptideIntenSum
+    - protein.top3MatchedPeptideIntenSum
+    - protein.MatchedProductIntenSum
+    - protein.sumNumBYCalc
+    - protein.sumNumBYPepFrag1
+    - protein.falsePositiveRate
   task: node
   task_type: classification
   transductive: false
@@ -17,12 +29,7 @@ train:
   batch_size: 2
   eval_period: 10
   ckpt_period: 10
-  sampler: neighbor
-  neighbor_sizes:
-  - 20
-  - 15
-  - 10
-  - 5
+  sampler: full_batch
 model:
   type: gnn
   loss_fun: binary_cross_entropy_with_weight
@@ -44,7 +51,7 @@ gnn:
 optim:
   optimizer: adam
   base_lr: 0.001
-  max_epoch: 50
+  max_epoch: 100 # 1000 epoch is recommended for this setting
   # try not use schedule and check fluctuation of training curve
   scheduler: none
 
