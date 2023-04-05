@@ -9,7 +9,7 @@ dataset:
   numeric_params:
     - protein probability
     - percent coverage
-    - tot indep_spectra
+    - tot indep spectra
     - percent share of spectrum ids
   task: node
   task_type: classification
