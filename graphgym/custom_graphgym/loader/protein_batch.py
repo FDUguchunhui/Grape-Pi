@@ -18,12 +18,13 @@ from torch_geometric.graphgym.config import cfg
 def load_dataset_protein_batch(format, name, dataset_dir):
     if format == 'PyG':
         if name == 'protein_batch':
-            dataset_raw = ProteinBatchDataset(dataset_dir)
+            numeric_params = cfg.dataset.numeric_params
+            dataset_raw = ProteinBatchDataset(dataset_dir, numeric_params)
             return dataset_raw
 
 
 class ProteinBatchDataset(InMemoryDataset):
-    def __init__(self, root, transform=None, pre_transform=None,
+    def __init__(self, root, numeric_params, transform=None, pre_transform=None,
                  pre_filter=None):
         # some naming convention here
         # dir: absolute path to a folder
@@ -31,6 +32,7 @@ class ProteinBatchDataset(InMemoryDataset):
         # filename: file name without any path information
         super().__init__(root, transform, pre_transform, pre_filter)
         self.data, self.slices = torch.load(self.processed_paths[0])
+        self.numeric_params = numeric_params
 
     @property
     def raw_file_names(self):
@@ -47,6 +49,8 @@ class ProteinBatchDataset(InMemoryDataset):
             raise ValueError('no interaction file is detected!')
         elif len(protein_dir_list) == 0:
             raise ValueError('no protein file detected!')
+        elif len(reference_dir_list) != 2:
+            raise ValueError('wrong number of reference file detected! (expect 2)')
         raw_paths = {'protein': protein_dir_list,
                      'interaction': interaction_dir_list[0], # only one interaction file is allowed
                      'reference': reference_dir_list}
@@ -90,8 +94,7 @@ class ProteinBatchDataset(InMemoryDataset):
         #     protein_dat = pd.read_csv(protein_filename, index_col=0)    # use the first column for protein ID
 
 
-        numeric_cols = ['protein probability', 'percent coverage', 'tot indep spectra',
-                        'percent share of spectrum ids']
+        numeric_cols = self.numeric_params
 
         # get positive/and negative reference
         positive_reference_file = osp.join(self.raw_dir, 'reference', 'positive.txt')
