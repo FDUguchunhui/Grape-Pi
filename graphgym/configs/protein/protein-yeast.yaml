@@ -6,6 +6,11 @@ dataset:
   format: PyG
   name: protein_batch
   dir: ./data/yeast
+  numeric_params:
+    - protein probability
+    - percent coverage
+    - tot indep_spectra
+    - percent share of spectrum ids
   task: node
   task_type: classification
   transductive: true
