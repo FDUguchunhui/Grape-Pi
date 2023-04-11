@@ -9,4 +9,4 @@ __all__ = [
 ]
 
 cfg.dataset.numeric_params = None
-cfg.model.loss_pos_weight = 1.0
+cfg.train.loss_pos_weight = 1.0

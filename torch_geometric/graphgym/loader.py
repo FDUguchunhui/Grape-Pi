@@ -1,6 +1,8 @@
 from typing import Callable
 
+import numpy as np
 import torch
+from sklearn.utils import class_weight
 
 import torch_geometric.graphgym.register as register
 import torch_geometric.transforms as T
@@ -191,6 +193,12 @@ def load_dataset():
     for func in register.loader_dict.values():
         dataset = func(format, name, dataset_dir)
         if dataset is not None:
+            # automatically initialize class weight to rebalance sample
+            if cfg.train.loss_pos_weight == -1 and len(dataset) == 1:
+                pos_weights = class_weight.compute_class_weight('balanced', classes=np.unique(dataset[0]['y']),
+                                                                y=dataset[0]['y'].numpy())
+                cfg.train.loss_pos_weight = float(pos_weights[1] / pos_weights[0])
+
             return dataset
     # Load from Pytorch Geometric dataset
     if format == 'PyG':
@@ -200,6 +208,8 @@ def load_dataset():
         dataset = load_ogb(name.replace('_', '-'), dataset_dir)
     else:
         raise ValueError('Unknown data format: {}'.format(format))
+
+
     return dataset
 
 

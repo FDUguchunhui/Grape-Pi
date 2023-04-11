@@ -1,6 +1,7 @@
 import logging
 import os
 
+import numpy as np
 from matplotlib import pyplot as plt
 from sklearn import metrics
 
@@ -83,6 +84,17 @@ if __name__ == '__main__':
             total_true = true[mask].detach().cpu()
         else:
             total_true = torch.cat([total_true, true[mask].detach().cpu()])
+
+    # get protein integer IDs in test dataset
+    # protein integer IDs can be translated back to original protein ID with the
+    # mapping rule used to create torch_geometric dataset
+    protein_int_ids = np.where(mask.detach().tolist())[0]
+    inv_map = {v.item(): k for k, v in data.mapping.items()}
+    # inv_map = {v: k for k, v in data.mapping.items()}
+    proteins_ids = [inv_map[protein_int_id] for protein_int_id in protein_int_ids]
+
+    # create prediction output of test dataset
+
 
     # calculate AUC metrics
     fpr, tpr, thresholds = metrics.roc_curve(total_true, total_pred_score)

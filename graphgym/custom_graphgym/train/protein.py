@@ -15,7 +15,6 @@ from torch_geometric.graphgym.loss import compute_loss
 from torch_geometric.graphgym.register import register_train
 from torch_geometric.graphgym.utils.epoch import is_ckpt_epoch, is_eval_epoch
 
-from numpy import loadtxt
 def train_epoch(logger, loader, model, optimizer, scheduler):
     model.train()
     time_start = time.time()
@@ -44,7 +43,7 @@ def train_epoch(logger, loader, model, optimizer, scheduler):
         # only use labeled true
     logger.update_stats(true=total_true,
                         pred=total_pred_score,
-                        loss=total_loss.item(),
+                        loss=total_loss.item()/len(total_true),
                         lr=scheduler.get_last_lr()[0],
                         time_used=time.time() - time_start,
                         params=cfg.params)
@@ -77,7 +76,7 @@ def eval_val_epoch(logger, loader, model):
 
         logger.update_stats(true=total_true,
                             pred=total_pred_score,
-                            loss=total_loss.item(),
+                            loss=total_loss.item()/len(total_true),
                             lr=0,
                             time_used=time.time() - time_start,
                             params=cfg.params)
@@ -89,6 +88,8 @@ def eval_test_epoch(logger, loader, model):
     total_loss = 0
     total_pred_score = None
     total_true = None
+
+
     for data in loader:
         data.to(torch.device(cfg.accelerator))
         pred, true = model(data)
@@ -112,7 +113,7 @@ def eval_test_epoch(logger, loader, model):
 
         logger.update_stats(true=total_true,
                             pred=total_pred_score,
-                            loss=total_loss.item(),
+                            loss=total_loss.item()/len(total_true),
                             lr=0,
                             time_used=time.time() - time_start,
                             params=cfg.params)
@@ -127,6 +128,7 @@ def train_protein(loggers, loaders, model, optimizer, scheduler):
         logging.info('Checkpoint found, Task already done')
     else:
         logging.info('Start from epoch %s', start_epoch)
+
 
     num_splits = len(loggers)
     for cur_epoch in range(start_epoch, cfg.optim.max_epoch):
