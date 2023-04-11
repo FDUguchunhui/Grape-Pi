@@ -1,6 +1,7 @@
 __pycache__/
 .pytest_cache/
 .DS_Store
+
 data/
 build/
 dist/
@@ -29,5 +30,9 @@ examples/*.pdf
 
 !torch_geometric/data/
 !test/data/
+!graphgym/data/
+graphgym/data/single
+graphgym/data/batch
+graphgym/data/yeast/processed
 
 graphgym/configs/*_grid_*

@@ -3,7 +3,7 @@ out_dir: results
 accelerator: auto
 dataset:
   format: PyG
-  name: protein_batch
+  name: protein
   dir: ./data/single
   numeric_params:
     - protein.avgMass

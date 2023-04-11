@@ -12,23 +12,53 @@ specific sub-network structures (e.g. clique), PPI-GNN model is a fully data-dri
 The framework was built on top of torch-geometry and pytorch. GraphyGym is used for allowing model training with a
 variety of hyperparameter combination with less computation and time using the idea of random-design-space searching. 
 
+## installation
+Due to special training infrastructure requirement, we modified part of code in the torch_geometric package. Therefore,
+to run the code, the customized torch_geometric package must be used install of an official version of torch_geometric
+package. We recommend use `conda` to create a virtual environment to avoid unexpected errors when running code that
+requires a official version of torch_geometric package.
+
+```
+conda env create graph-pi
+conda activate graph-pi
+```
+
+Then navigate to the root directory of the download folder
+```
+python setup.py install
+```
+
 ## Usage
 
-```bash
+```
 python main.py --cfg configs/example.yaml --repeat 3
 ```
 
 ### Data preparation
+Graph-pi training framework was based on graphgym. Please check the  for details.
+
 
 The PPI-GNN framework features a built-in module for easily load raw protein and PPI data into torch.geometry.dataset 
 format that can be used for training model. The only things needed is to provide a root directory for where to
 find the raw file, and the name of the raw protein data file and raw PPI data file in the configure file.
 
 ```ymal
-name: protein
-dir: /Users/cgu3/Library/CloudStorage/OneDrive-InsideMDAnderson/proteomics/project/PPI-for-protein-detection/data/test-data
-protein_filename: combined_protein_7103_processed.csv
-interaction_filename: STRING-interaction-swiss.csv
+dataset:
+  format: PyG
+  name: protein
+  dir: ./data/single
+  numeric_params:
+    - protein probability
+    - percent coverage
+    - tot indep spectra
+    - percent share of spectrum ids
+  task: node
+  task_type: classification
+  transductive: false
+  transform: none
+  encoder: false
+  node_encoder: false
+  edge_encoder: false
 ```
 
 The root folder should look like this, with a fold named "raw" and the "protein_filename" and "interaction_filename"

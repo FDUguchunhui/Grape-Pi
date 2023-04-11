@@ -3,7 +3,7 @@ out_dir: results
 accelerator: auto
 dataset:
   format: PyG
-  name: protein_batch
+  name: protein
   dir: ./data/single
   numeric_params:
     - protein.avgMass
@@ -25,7 +25,7 @@ dataset:
   node_encoder: false
   edge_encoder: false
 share:
-  dim_in: 11
+  dim_in: -1
   dim_out: 2
 train:
   batch_size: 128
