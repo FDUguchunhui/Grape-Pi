@@ -2,7 +2,7 @@
 
 CONFIG=${CONFIG:-protein-yeast-graphsage}
 GRID=${GRID:-protein-yeast-graphsage}
-REPEAT=${REPEAT:-3}
+REPEAT=${REPEAT:-1}
 MAX_JOBS=${MAX_JOBS:-1}
 SLEEP=${SLEEP:-0}
 MAIN=${MAIN:-main}
