@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 CONFIG_DIR=$1
 REPEAT=$2
 MAX_JOBS=${3:-2}
