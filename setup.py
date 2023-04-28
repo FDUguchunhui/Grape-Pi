@@ -14,10 +14,12 @@ install_requires = [
 ]
 
 graphgym_requires = [
+    'scikit-learn',
     'yacs',
     'hydra-core',
     'protobuf<4.21',
     'pytorch-lightning',
+    'pyyaml',
 ]
 
 modelhub_requires = [
