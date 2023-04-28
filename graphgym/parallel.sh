@@ -11,7 +11,7 @@ MAIN=${5:-main}
   CUR_JOBS=0
   for CONFIG in "$CONFIG_DIR"/*.yaml; do
     if [ "$CONFIG" != "$CONFIG_DIR/*.yaml" ]; then
-      ((CUR_JOBS >= MAX_JOBS)) && wait
+      ((CUR_JOBS >= MAX_JOBS)) && wait -n
       python $MAIN.py --cfg $CONFIG --repeat $REPEAT --mark_done &
       echo $CONFIG
       sleep $SLEEP
