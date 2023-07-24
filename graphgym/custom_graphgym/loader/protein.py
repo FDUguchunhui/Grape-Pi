@@ -125,7 +125,9 @@ class ProteinBatchDataset(InMemoryDataset):
 
         # split data into train, val, and test set
         # rename the attributes to match name convention in GraphGym
-        split_transformer = T.RandomNodeSplit(split='train_rest', num_splits=1, num_val=0.2, num_test=0.2)
+        split_transformer = T.RandomNodeSplit(split='train_rest', num_splits=1,
+                                              num_val=cfg.dataset.split[1],
+                                              num_test=cfg.dataset.split[2])
         data = split_transformer(data)
 
         # set mask only to labeled data for using GraphGym framework

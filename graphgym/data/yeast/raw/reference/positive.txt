@@ -1,4 +1,3 @@
-protein
 YAL003W
 YAL005C
 YAL012W
