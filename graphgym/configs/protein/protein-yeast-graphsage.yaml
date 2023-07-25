@@ -3,7 +3,7 @@ out_dir: results
 metric_best: auc
 dataset: # need to delete file in processed folder if change args under dataset category
   name: protein
-  dir: ./data/yeast
+  dir: data/yeast
   numeric_params:
   - protein probability
   - percent coverage
@@ -17,10 +17,10 @@ dataset: # need to delete file in processed folder if change args under dataset 
   encoder: false
   node_encoder: false
   edge_encoder: false
-  split: [0.8, 0.1, 0.1]
+  split: [0.6, 0.2, 0.2] # train, val, test
 share:
   dim_in: -1
-  dim_out: 2
+  dim_out: 2  # dim_out 2 is for binary classification
 train:
   loss_pos_weight: -1.0
   batch_size: 128
