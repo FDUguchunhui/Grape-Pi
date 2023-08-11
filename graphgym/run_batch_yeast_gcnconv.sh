@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 
-CONFIG=${CONFIG:-protein-GPU}
-GRID=${GRID:-protein}
-REPEAT=${REPEAT:-3}
-MAX_JOBS=${MAX_JOBS:-100}
-SLEEP=${SLEEP:-1}
+CONFIG=${CONFIG:-protein-yeast-gcnconv}
+GRID=${GRID:-protein-yeast-gcnconv}
+REPEAT=${REPEAT:-1}
+MAX_JOBS=${MAX_JOBS:-3}
+SLEEP=${SLEEP:-0}
 MAIN=${MAIN:-main}
 
-# generate configs (after controlling computational budget)
+# generate configs (aft
+# er controlling computational budget)
 # please remove --config_budget, if don't control computational budget
 python configs_gen.py --config configs/protein/${CONFIG}.yaml \
   --grid grids/${GRID}.txt \

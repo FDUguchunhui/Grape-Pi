@@ -3,11 +3,12 @@
 CONFIG=${CONFIG:-protein-yeast-graphsage}
 GRID=${GRID:-protein-yeast-graphsage}
 REPEAT=${REPEAT:-1}
-MAX_JOBS=${MAX_JOBS:-1}
+MAX_JOBS=${MAX_JOBS:-3}
 SLEEP=${SLEEP:-0}
 MAIN=${MAIN:-main}
 
-# generate configs (after controlling computational budget)
+# generate configs (aft
+# er controlling computational budget)
 # please remove --config_budget, if don't control computational budget
 python configs_gen.py --config configs/protein/${CONFIG}.yaml \
   --grid grids/${GRID}.txt \
