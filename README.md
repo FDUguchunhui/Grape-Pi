@@ -71,8 +71,13 @@ pip install torch-scatter torch-sparse torch-cluster torch-spline-conv
 ```
 If you are using pytorch=1.13.0 cpu only version, run
 ```angular2html
-pip install torch-scatter torch-sparse torch-cluster torch-spline-conv 
--f https://data.pyg.org/whl/torch-1.13.0+cpu.html
+pip install torch_scatter torch_sparse torch_cluster 
+torch_spline_conv -f https://data.pyg.org/whl/torch-1.13.0+cpu.html
+```
+
+# In case you run into unexpected error Uninstall pyg-lib
+```angular2html
+pip uninstall pyg-lib
 ```
 
 
