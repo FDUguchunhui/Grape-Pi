@@ -440,3 +440,18 @@ Please cite the following papers if you use this code in your own work::
   year={2019},
 }
 ```
+
+
+Common issues:
+
+If you have the following problem during processing the `raw` data into `processed` data
+```angular2html
+utf8' codec can't decode byte 0x80 in position 3131: invalid start byte
+```
+This is caused by a hidden `.DS_Store` file created by the Mac OS system
+Use terminal enter the `protein` folder under the `raw` folder
+```angular2html
+ls -a # check if there is a .DS_Store file
+rm .DS_Store # remove the file
+rm -r ../../processed # remove the ill-created `processed` data
+```

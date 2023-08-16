@@ -6,10 +6,10 @@ dataset: # need to delete file in processed folder if change args under dataset 
   dir: data/yeast
   numeric_params:
   - protein probability
-  - percent coverage
-  - tot indep spectra
-  - percent share of spectrum ids
-#  - mRNA(M)
+#  - percent coverage
+#  - tot indep spectra
+#  - percent share of spectrum ids
+  - mRNA(M)
   task: node
   task_type: classification
   transductive: false
@@ -29,20 +29,18 @@ train:
   ckpt_clean: false
   sampler: neighbor
   neighbor_sizes:
-  - 100
-  - 50
   - 25
-  - 10
-  epoch_resume: -1
+  - 20
+  epoch_resume: 0
 model:
   type: gnn
   loss_fun: binary_cross_entropy_with_weight
   # the weight is calculated by num_negative_sample/num_positive_sample
 gnn:
-  layers_pre_mp: 1
-  layers_mp: 2
-  layers_post_mp: 1
-  dim_inner: 8 # 2 * dim_in
+  layers_pre_mp: 4
+  layers_mp: 0
+  layers_post_mp: 0
+  dim_inner: 10
   layer_type: sageconv # sageconv gcnconv
   stage_type: stack #skipsum skipconcat
   batchnorm: false
