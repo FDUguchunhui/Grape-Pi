@@ -23,7 +23,8 @@ class PyGModelHubMixin(ModelHubMixin):
     .. code-block:: python
 
        from torch_geometric.datasets import Planetoid
-       from torch_geometric.nn import Node2Vec, PyGModelHubMixin
+       from torch_geometric.nn import Node2Vec
+       from torch_geometric.nn.model_hub import PyGModelHubMixin
 
        # Define your class with the mixin:
        class N2V(Node2Vec, PyGModelHubMixin):
@@ -69,7 +70,8 @@ class PyGModelHubMixin(ModelHubMixin):
     """
     def __init__(self, model_name: str, dataset_name: str, model_kwargs: Dict):
         ModelHubMixin.__init__(self)
-        # Huggingface Hub api only accepts saving the config as a dict.
+
+        # Huggingface Hub API only accepts saving the config as a dict.
         # If the model is instantiated with non-native python types
         # such as torch Tensors (node2vec being an example), we have to remove
         # these as they are not json serialisable
@@ -95,7 +97,7 @@ class PyGModelHubMixin(ModelHubMixin):
 
     def _save_pretrained(self, save_directory: Union[Path, str]):
         path = os.path.join(save_directory, MODEL_WEIGHTS_NAME)
-        model_to_save = self.module if hasattr(self, "module") else self
+        model_to_save = self.module if hasattr(self, 'module') else self
         torch.save(model_to_save.state_dict(), path)
 
     def save_pretrained(self, save_directory: Union[str, Path],
@@ -121,8 +123,13 @@ class PyGModelHubMixin(ModelHubMixin):
         # ModelHubMixin.save_pretrained
         kwargs.pop('config', None)
 
-        ModelHubMixin.save_pretrained(self, save_directory, config,
-                                      push_to_hub, repo_id=repo_id, **kwargs)
+        super().save_pretrained(
+            save_directory=save_directory,
+            config=config,
+            push_to_hub=push_to_hub,
+            repo_id=repo_id,
+            **kwargs,
+        )
         model_card = self.construct_model_card(self.model_name,
                                                self.dataset_name)
         if push_to_hub:
@@ -138,10 +145,10 @@ class PyGModelHubMixin(ModelHubMixin):
         proxies,
         resume_download,
         local_files_only,
-        use_auth_token,
-        dataset_name="",
-        model_name="",
-        map_location="cpu",
+        token,
+        dataset_name='',
+        model_name='',
+        map_location='cpu',
         strict=False,
         **model_kwargs,
     ):
@@ -158,7 +165,7 @@ class PyGModelHubMixin(ModelHubMixin):
                 force_download=force_download,
                 proxies=proxies,
                 resume_download=resume_download,
-                use_auth_token=use_auth_token,
+                token=token,
                 local_files_only=local_files_only,
             )
 
@@ -229,11 +236,11 @@ class PyGModelHubMixin(ModelHubMixin):
         """
         return super().from_pretrained(
             pretrained_model_name_or_path,
-            force_download,
-            resume_download,
-            proxies,
-            token,
-            cache_dir,
-            local_files_only,
+            force_download=force_download,
+            resume_download=resume_download,
+            proxies=proxies,
+            use_auth_token=token,
+            cache_dir=cache_dir,
+            local_files_only=local_files_only,
             **model_kwargs,
         )

@@ -32,11 +32,13 @@ import torch
 from torch_geometric.typing import FeatureTensorType, NodeType
 from torch_geometric.utils.mixin import CastMixin
 
-_field_status = Enum("FieldStatus", "UNSET")
-
 # We allow indexing with a tensor, numpy array, Python slicing, or a single
 # integer index.
 IndexType = Union[torch.Tensor, np.ndarray, slice, int]
+
+
+class _FieldStatus(Enum):
+    UNSET = None
 
 
 @dataclass
@@ -52,20 +54,20 @@ class TensorAttr(CastMixin):
     """
 
     # The group name that the tensor corresponds to. Defaults to UNSET.
-    group_name: Optional[NodeType] = _field_status.UNSET
+    group_name: Optional[NodeType] = _FieldStatus.UNSET
 
     # The name of the tensor within its group. Defaults to UNSET.
-    attr_name: Optional[str] = _field_status.UNSET
+    attr_name: Optional[str] = _FieldStatus.UNSET
 
     # The node indices the rows of the tensor correspond to. Defaults to UNSET.
-    index: Optional[IndexType] = _field_status.UNSET
+    index: Optional[IndexType] = _FieldStatus.UNSET
 
     # Convenience methods #####################################################
 
     def is_set(self, key: str) -> bool:
         r"""Whether an attribute is set in :obj:`TensorAttr`."""
         assert key in self.__dataclass_fields__
-        return getattr(self, key) != _field_status.UNSET
+        return getattr(self, key) != _FieldStatus.UNSET
 
     def is_fully_specified(self) -> bool:
         r"""Whether the :obj:`TensorAttr` has no unset fields."""
@@ -137,7 +139,7 @@ class AttrView(CastMixin):
         # Find the first attribute name that is UNSET:
         attr_name: Optional[str] = None
         for field in out._attr.__dataclass_fields__:
-            if getattr(out._attr, field) == _field_status.UNSET:
+            if getattr(out._attr, field) == _FieldStatus.UNSET:
                 attr_name = field
                 break
 
@@ -198,7 +200,7 @@ class AttrView(CastMixin):
         .. code-block:: python
 
             view = store.view(TensorAttr(group_name))
-            view['index'] = torch.Tensor([1, 2, 3])
+            view['index'] = torch.tensor([1, 2, 3])
         """
         self.__setattr__(key, value)
 
@@ -295,7 +297,12 @@ class FeatureStore:
         r"""To be implemented by :class:`FeatureStore` subclasses."""
         pass
 
-    def get_tensor(self, *args, **kwargs) -> FeatureTensorType:
+    def get_tensor(
+        self,
+        *args,
+        convert_type: bool = False,
+        **kwargs,
+    ) -> FeatureTensorType:
         r"""Synchronously obtains a :class:`tensor` from the
         :class:`FeatureStore`.
 
@@ -303,6 +310,9 @@ class FeatureStore:
             **kwargs (TensorAttr): Any relevant tensor attributes that
                 correspond to the feature tensor. See the :class:`TensorAttr`
                 documentation for required and optional attributes.
+            convert_type (bool, optional): Whether to convert the type of the
+                output tensor to the type of the attribute index.
+                (default: :obj:`False`)
 
         Raises:
             ValueError: If the input :class:`TensorAttr` is not fully
@@ -310,7 +320,6 @@ class FeatureStore:
             KeyError: If the tensor corresponding to the input
                 :class:`TensorAttr` was not found.
         """
-
         attr = self._tensor_attr_cls.cast(*args, **kwargs)
         if not attr.is_fully_specified():
             raise ValueError(f"The input TensorAttr '{attr}' is not fully "
@@ -320,17 +329,19 @@ class FeatureStore:
         tensor = self._get_tensor(attr)
         if tensor is None:
             raise KeyError(f"A tensor corresponding to '{attr}' was not found")
-        return self._to_type(attr, tensor)
+        return self._to_type(attr, tensor) if convert_type else tensor
 
     def _multi_get_tensor(
-            self,
-            attrs: List[TensorAttr]) -> List[Optional[FeatureTensorType]]:
+        self,
+        attrs: List[TensorAttr],
+    ) -> List[Optional[FeatureTensorType]]:
         r"""To be implemented by :class:`FeatureStore` subclasses."""
         return [self._get_tensor(attr) for attr in attrs]
 
     def multi_get_tensor(
         self,
         attrs: List[TensorAttr],
+        convert_type: bool = False,
     ) -> List[FeatureTensorType]:
         r"""Synchronously obtains a list of tensors from the
         :class:`FeatureStore` for each tensor associated with the attributes in
@@ -345,6 +356,9 @@ class FeatureStore:
         Args:
             attrs (List[TensorAttr]): A list of input :class:`TensorAttr`
                 objects that identify the tensors to obtain.
+            convert_type (bool, optional): Whether to convert the type of the
+                output tensor to the type of the attribute index.
+                (default: :obj:`False`)
 
         Raises:
             ValueError: If any input :class:`TensorAttr` is not fully
@@ -361,13 +375,13 @@ class FeatureStore:
                 f"'UNSET' fields")
 
         tensors = self._multi_get_tensor(attrs)
-        if None in tensors:
+        if any(v is None for v in tensors):
             bad_attrs = [attrs[i] for i, v in enumerate(tensors) if v is None]
             raise KeyError(f"Tensors corresponding to attributes "
                            f"'{bad_attrs}' were not found")
 
         return [
-            self._to_type(attr, tensor)
+            self._to_type(attr, tensor) if convert_type else tensor
             for attr, tensor in zip(attrs, tensors)
         ]
 

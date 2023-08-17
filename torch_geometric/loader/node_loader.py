@@ -1,6 +1,7 @@
-from typing import Any, Callable, Iterator, Optional, Tuple, Union
+from typing import Any, Callable, Iterator, List, Optional, Tuple, Union
 
 import torch
+from torch import Tensor
 
 from torch_geometric.data import Data, FeatureStore, GraphStore, HeteroData
 from torch_geometric.loader.base import DataLoaderIterator
@@ -10,6 +11,7 @@ from torch_geometric.loader.utils import (
     filter_data,
     filter_hetero_data,
     get_input_nodes,
+    infer_filter_per_worker,
 )
 from torch_geometric.sampler import (
     BaseSampler,
@@ -57,14 +59,17 @@ class NodeLoader(torch.utils.data.DataLoader, AffinityMixin):
             that takes in a :class:`torch_geometric.sampler.SamplerOutput` and
             returns a transformed version. (default: :obj:`None`)
         filter_per_worker (bool, optional): If set to :obj:`True`, will filter
-            the returning data in each worker's subprocess rather than in the
-            main process.
-            Setting this to :obj:`True` for in-memory datasets is generally not
-            recommended:
-            (1) it may result in too many open file handles,
-            (2) it may slown down data loading,
-            (3) it requires operating on CPU tensors.
-            (default: :obj:`False`)
+            the returned data in each worker's subprocess.
+            If set to :obj:`False`, will filter the returned data in the main
+            process.
+            If set to :obj:`None`, will automatically infer the decision based
+            on whether data partially lives on the GPU
+            (:obj:`filter_per_worker=True`) or entirely on the CPU
+            (:obj:`filter_per_worker=False`).
+            There exists different trade-offs for setting this option.
+            Specifically, setting this option to :obj:`True` for in-memory
+            datasets will move all features to shared memory, which may result
+            in too many open file handles. (default: :obj:`None`)
         custom_cls (HeteroData, optional): A custom
             :class:`~torch_geometric.data.HeteroData` class to return for
             mini-batches in case of remote backends. (default: :obj:`None`)
@@ -80,16 +85,17 @@ class NodeLoader(torch.utils.data.DataLoader, AffinityMixin):
         input_time: OptTensor = None,
         transform: Optional[Callable] = None,
         transform_sampler_output: Optional[Callable] = None,
-        filter_per_worker: bool = False,
+        filter_per_worker: Optional[bool] = None,
         custom_cls: Optional[HeteroData] = None,
         input_id: OptTensor = None,
         **kwargs,
     ):
+        if filter_per_worker is None:
+            filter_per_worker = infer_filter_per_worker(data)
+
         # Remove for PyTorch Lightning:
-        if 'dataset' in kwargs:
-            del kwargs['dataset']
-        if 'collate_fn' in kwargs:
-            del kwargs['collate_fn']
+        kwargs.pop('dataset', None)
+        kwargs.pop('collate_fn', None)
 
         # Get node type (or `None` for homogeneous graphs):
         input_type, input_nodes = get_input_nodes(data, input_nodes)
@@ -111,7 +117,17 @@ class NodeLoader(torch.utils.data.DataLoader, AffinityMixin):
         iterator = range(input_nodes.size(0))
         super().__init__(iterator, collate_fn=self.collate_fn, **kwargs)
 
-    def collate_fn(self, index: NodeSamplerInput) -> Any:
+    def __call__(
+        self,
+        index: Union[Tensor, List[int]],
+    ) -> Union[Data, HeteroData]:
+        r"""Samples a subgraph from a batch of input nodes."""
+        out = self.collate_fn(index)
+        if not self.filter_per_worker:
+            out = self.filter_fn(out)
+        return out
+
+    def collate_fn(self, index: Union[Tensor, List[int]]) -> Any:
         r"""Samples a subgraph from a batch of input nodes."""
         input_data: NodeSamplerInput = self.input_data[index]
 
@@ -143,6 +159,9 @@ class NodeLoader(torch.utils.data.DataLoader, AffinityMixin):
                 data.e_id = out.edge
 
             data.batch = out.batch
+            data.num_sampled_nodes = out.num_sampled_nodes
+            data.num_sampled_edges = out.num_sampled_edges
+
             data.input_id = out.metadata[0]
             data.seed_time = out.metadata[1]
             data.batch_size = out.metadata[0].size(0)
@@ -160,14 +179,13 @@ class NodeLoader(torch.utils.data.DataLoader, AffinityMixin):
                 if 'n_id' not in data[key]:
                     data[key].n_id = node
 
-            if out.edge is not None:
-                for key, edge in out.edge.items():
-                    if 'e_id' not in data[key]:
-                        data[key].e_id = edge
+            for key, edge in (out.edge or {}).items():
+                if 'e_id' not in data[key]:
+                    data[key].e_id = edge
 
-            if out.batch is not None:
-                for key, batch in out.batch.items():
-                    data[key].batch = batch
+            data.set_value_dict('batch', out.batch)
+            data.set_value_dict('num_sampled_nodes', out.num_sampled_nodes)
+            data.set_value_dict('num_sampled_edges', out.num_sampled_edges)
 
             input_type = self.input_data.input_type
             data[input_type].input_id = out.metadata[0]

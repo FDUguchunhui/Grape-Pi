@@ -60,11 +60,11 @@ class DegreeScalerAggregation(Aggregation):
         self.init_avg_deg_log = float(((bin_degree + 1).log() * deg).sum()) / N
 
         if train_norm:
-            self.avg_deg_lin = torch.nn.Parameter(torch.Tensor(1))
-            self.avg_deg_log = torch.nn.Parameter(torch.Tensor(1))
+            self.avg_deg_lin = torch.nn.Parameter(torch.empty(1))
+            self.avg_deg_log = torch.nn.Parameter(torch.empty(1))
         else:
-            self.register_buffer('avg_deg_lin', torch.Tensor(1))
-            self.register_buffer('avg_deg_log', torch.Tensor(1))
+            self.register_buffer('avg_deg_lin', torch.empty(1))
+            self.register_buffer('avg_deg_log', torch.empty(1))
 
         self.reset_parameters()
 
@@ -94,12 +94,14 @@ class DegreeScalerAggregation(Aggregation):
             elif scaler == 'amplification':
                 out_scaler = out * (torch.log(deg + 1) / self.avg_deg_log)
             elif scaler == 'attenuation':
-                out_scaler = out * (self.avg_deg_log / torch.log(deg + 1))
+                # Clamp minimum degree to one to avoid dividing by zero:
+                out_scaler = out * (self.avg_deg_log /
+                                    torch.log(deg.clamp(min=1) + 1))
             elif scaler == 'linear':
                 out_scaler = out * (deg / self.avg_deg_lin)
             elif scaler == 'inverse_linear':
-                # Clamps minimum degree into one to avoid dividing by zero
-                out_scaler = out * (self.avg_deg_lin / deg.clamp(1))
+                # Clamp minimum degree to one to avoid dividing by zero:
+                out_scaler = out * (self.avg_deg_lin / deg.clamp(min=1))
             else:
                 raise ValueError(f"Unknown scaler '{scaler}'")
             outs.append(out_scaler)

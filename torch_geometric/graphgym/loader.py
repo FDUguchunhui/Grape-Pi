@@ -239,11 +239,11 @@ def set_dataset_info(dataset):
 
     # count number of dataset splits
     cfg.share.num_splits = 1
-    for key in dataset._data.keys:
+    for key in dataset._data.keys():
         if 'val' in key:
             cfg.share.num_splits += 1
             break
-    for key in dataset._data.keys:
+    for key in dataset._data.keys():
         if 'test' in key:
             cfg.share.num_splits += 1
             break
@@ -263,10 +263,11 @@ def create_dataset():
 
 
 def get_loader(dataset, sampler, batch_size, shuffle=True):
+    pw = cfg.num_workers > 0
     if sampler == "full_batch" or len(dataset) > 1:
         loader_train = DataLoader(dataset, batch_size=batch_size,
                                   shuffle=shuffle, num_workers=cfg.num_workers,
-                                  pin_memory=True)
+                                  pin_memory=True, persistent_workers=pw)
     elif sampler == "neighbor":
         data = dataset[0]
         loader_train = NeighborLoader(
@@ -279,7 +280,7 @@ def get_loader(dataset, sampler, batch_size, shuffle=True):
                                         num_parts=cfg.train.train_parts,
                                         shuffle=shuffle,
                                         num_workers=cfg.num_workers,
-                                        pin_memory=True)
+                                        pin_memory=True, persistent_workers=pw)
     elif sampler == "saint_rw":
         loader_train = \
             GraphSAINTRandomWalkSampler(dataset[0],
@@ -289,21 +290,24 @@ def get_loader(dataset, sampler, batch_size, shuffle=True):
                                         sample_coverage=0,
                                         shuffle=shuffle,
                                         num_workers=cfg.num_workers,
-                                        pin_memory=True)
+                                        pin_memory=True,
+                                        persistent_workers=pw)
     elif sampler == "saint_node":
         loader_train = \
             GraphSAINTNodeSampler(dataset[0], batch_size=batch_size,
                                   num_steps=cfg.train.iter_per_epoch,
                                   sample_coverage=0, shuffle=shuffle,
                                   num_workers=cfg.num_workers,
-                                  pin_memory=True)
+                                  pin_memory=True,
+                                  persistent_workers=pw)
     elif sampler == "saint_edge":
         loader_train = \
             GraphSAINTEdgeSampler(dataset[0], batch_size=batch_size,
                                   num_steps=cfg.train.iter_per_epoch,
                                   sample_coverage=0, shuffle=shuffle,
                                   num_workers=cfg.num_workers,
-                                  pin_memory=True)
+                                  pin_memory=True,
+                                  persistent_workers=pw)
     elif sampler == "cluster":
         loader_train = \
             ClusterLoader(dataset[0],
@@ -313,7 +317,8 @@ def get_loader(dataset, sampler, batch_size, shuffle=True):
                                                       "-", "_")),
                           batch_size=batch_size, shuffle=shuffle,
                           num_workers=cfg.num_workers,
-                          pin_memory=True)
+                          pin_memory=True,
+                          persistent_workers=pw)
 
     else:
         raise NotImplementedError("%s sampler is not implemented!" % sampler)
