@@ -75,7 +75,9 @@ pip install torch_scatter torch_sparse torch_cluster
 torch_spline_conv -f https://data.pyg.org/whl/torch-1.13.0+cpu.html
 ```
 
-# In case you run into unexpected error Uninstall pyg-lib
+## If you follow the instruction above and use new virtual environment, you don't need to run this code chunk.
+In case you have installed pyg-lib before from somewhere and run into unexpected error, try
+uninstall pyg-lib to avoid that it conflicts with torch_sparse library.
 ```angular2html
 pip uninstall pyg-lib
 ```
@@ -197,7 +199,7 @@ optim:
 ```
 
 
-## usage
+## Usage
 Navigate to the graphgym directory
 ```
 python main.py --cfg configs/protein/protein-yeast-graphsage.yaml --repeat 1
@@ -422,10 +424,76 @@ test: {'epoch': 10, 'loss': 0.0031, 'lr': 0, 'params': 321, 'time_iter': 0.236, 
 
 ![img_1.png](img_1.png)
 
+
+## Batch training
+The GraphGym platform features a easy-to-use batch training option.
+
+
+### Configure grid search configuration file
+
+Grid config file are stored in graphgym/grids folder.
+A grid config file (take protein-yeast-gcnconv) looks like below.
+For each hyperparameter, you can specify the options for it by "hyperparameter-name alias [option1, option2, ...]"
+in each line. Sometimes, you may want to override some of the option used in a single training, such as whether clean
+checkpoint. You can override it by "training-option, alias, [new_value]" in another new line. 
+```angular2html
+# Format for each row: name in config.py; alias; range to search
+# No spaces, except between these 3 fields
+# Line breaks are used to union different grid search spaces
+# Feel free to add '#' to add comments
+
+train.batch_size batch_size [64,128,256]
+gnn.layers_pre_mp l_pre [1,2,3]
+gnn.layers_mp l_mp [0,1,2,3]
+gnn.layers_post_mp l_post [1,2,3]
+gnn.stage_type stage ['stack','skipsum','skipconcat']
+optim.max_epoch epoch [100,200,300]
+train.ckpt_clean ckpt_clean [True]
+```
+
+### Check batch training script file
+```angular2html
+#!/usr/bin/env bash
+
+CONFIG=${CONFIG:-protein-yeast-gcnconv}
+GRID=${GRID:-protein-yeast-gcnconv}
+REPEAT=${REPEAT:-3}
+MAX_JOBS=${MAX_JOBS:-1}
+SLEEP=${SLEEP:-0}
+MAIN=${MAIN:-main}
+
+...
+```
+The instruction above only aim to provide a start point for user to check how we did our experiment.
+Please refer to https://github.com/snap-stanford/GraphGym for more details about how to config a batch experiment.
+
+### run batch experiment
+```angular2html
+bash run_batch_yeast_gcnconv.sh
+```
+
+
+### Aggregate results
+Run `bash run_batch_yeast_gcnconv.sh` should automatically aggregate batch experiment result into `agg` folder.
+However, in case it is not generated automatically, you can manually aggregate the results by run
+```angular2html 
+python agg_batch.py --dir results/protein-yeast-graphsage_grid_protein-yeast-graphsage
+```
+
+
+## Post-training analysis
+
+
+
+
+
+## Rebuild the best model based on analysis result from batch experiment for protein prediction application 
+```angular2html
+
+```
+
 ## Cite
 Please cite the following papers if you use this code in your own work::
-
-
 [Fast Graph Representation Learning with PyTorch Geometric
 
 
@@ -444,7 +512,7 @@ Please cite the following papers if you use this code in your own work::
 
 Common issues:
 
-If you have the following problem during processing the `raw` data into `processed` data
+1. If you have the following problem during processing the `raw` data into `processed` data
 ```angular2html
 utf8' codec can't decode byte 0x80 in position 3131: invalid start byte
 ```
@@ -455,3 +523,6 @@ ls -a # check if there is a .DS_Store file
 rm .DS_Store # remove the file
 rm -r ../../processed # remove the ill-created `processed` data
 ```
+
+
+2. 
