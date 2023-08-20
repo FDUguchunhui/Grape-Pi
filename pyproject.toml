@@ -168,6 +168,3 @@ exclude_lines = [
     "register_parameter",
     "torch.cuda.is_available",
 ]
-
-[tool.flake8]
-ignore = ["F811", "W503", "W504"]
