@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-CONFIG=${CONFIG:-protein-yeast-gcnconv}
-GRID=${GRID:-protein-yeast-gcnconv}
-REPEAT=${REPEAT:-1}
+CONFIG=${CONFIG:-yeast-gcnconv}
+GRID=${GRID:-yeast-gcnconv}
+REPEAT=${REPEAT:-3}
 MAX_JOBS=${MAX_JOBS:-3}
 SLEEP=${SLEEP:-0}
 MAIN=${MAIN:-main}

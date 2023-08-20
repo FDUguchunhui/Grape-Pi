@@ -10,6 +10,7 @@ from torch_geometric.data import Data
 from torch_geometric.data import InMemoryDataset
 from torch_geometric.graphgym.register import register_loader
 import torch_geometric.transforms as T
+from torch_geometric.utils import degree
 from typing import Any, Callable, List, Optional, Tuple, Union
 from torch_geometric.data.dataset import to_list
 from torch_geometric.graphgym.config import cfg
@@ -118,10 +119,16 @@ class ProteinBatchDataset(InMemoryDataset):
         edge_index, edge_attr = self._load_edge_csv(path=interaction_dir, mapping=mapping, numeric_cols=None)
 
         # the mask used when calculating loss
+        # Since the original graphgym only accept y as a dim=2 for output
+        # add another variable to help distinguish those unlabelled nodes (y = 0 and loss_mask = 0)
         loss_mask = np.where(y == -1, 0, 1)
         y = torch.where(y == -1, 0, y)
         data = Data(x=x, edge_index=edge_index, split=1, edge_attr=edge_attr, y=y,
                     loss_mask=torch.tensor(loss_mask, dtype=torch.long))
+
+        # calculate node degree
+        # deg = degree(data.edge_index[0], data.num_nodes).reshape(-1, 1)
+        # x = torch.cat((x, deg), 1)
 
         # split data into train, val, and test set
         # rename the attributes to match name convention in GraphGym

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-CONFIG=${CONFIG:-protein-yeast-graphsage}
-GRID=${GRID:-protein-yeast-graphsage}
+CONFIG=${CONFIG:-yeast-graphsage}
+GRID=${GRID:-yeast-graphsage}
 REPEAT=${REPEAT:-1}
 MAX_JOBS=${MAX_JOBS:-3}
 SLEEP=${SLEEP:-0}
