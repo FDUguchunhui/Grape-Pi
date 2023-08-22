@@ -89,6 +89,7 @@ full = [
     "statsmodels",
     "rdkit",
     "tensorboardX",
+    "ogb",
 ]
 
 [project.urls]

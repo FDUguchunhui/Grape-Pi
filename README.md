@@ -35,7 +35,7 @@ conda activate [Name-of-the-Virtual-Environment]
 Replace `[Name-of-the-Virtual-Environment]` with your preferred name.
 
 The original torch-geometry support python 3.7-3.11 with pytorch 1.3.0-2.0.0. For illustration
-purpose, we use python=3.7 and pytorch=1.13.0 here. 
+purpose, we use python=3.10 and pytorch=2.0.0 here. 
 For using and debugging with other python and pytorch version, please refer to https://github.com/pyg-team/pytorch_geometric for details
 
 In case you have accidentally an official version of torch-geometric, run
@@ -62,19 +62,12 @@ conda install pytorch==2.0.0 torchvision==0.15.0 torchaudio==2.0.0 cpuonly -c py
 ### Follow the installation instructions to install additional libraries to using Grape-Pi:
 torch-scatter, torch-sparse, torch-cluster and torch-spline-conv (if you haven't already):
 ```angular2html
-pip install pyg_lib torch_scatter torch_sparse torch_cluster torch_spline_conv -f 
-https://data.pyg.org/whl/torch-2.0.0+${CUDA}.html
+pip install pyg_lib torch_scatter torch_sparse torch_cluster torch_spline_conv -f https://data.pyg.org/whl/torch-2.0.0+${CUDA}.html
 ```
 If you are using pytorch=2.0.0 cpu only version, run
 ```angular2html
-pip install torch_scatter torch_sparse torch_cluster torch_spline_conv -f https://data.pyg.org/whl/torch-2.0.0+cpu.html
+pip install pyg_lib torch_scatter torch_sparse torch_cluster torch_spline_conv -f https://data.pyg.org/whl/torch-2.0.0+cpu.html
 ```
-
-Caution:
-torch_geometry is not a easy-installed package/environment. If you have any issue while using it after updating some
-of the package, try re-create new virtual environment and start from scratch and follow the instruction for that version
-of torch_geometry.
-
 
 ### Clone a copy of Grape-Pi from source and navigate to the root directory of the download folder
 ```angular2html
@@ -281,18 +274,21 @@ rm .DS_Store # remove the file
 rm -r ../../processed # remove the ill-created `processed` data
 ```
 
-Mac user
+Mac user may encounter the following problem
 ```angular2html
-UserWarning: An issue occurred while importing 'pyg-lib'. Disabling its usage. Stacktrace: dlopen(/Users/guchunhui/opt/anaconda3/envs/Grape-Pi/lib/python3.10/site-packages/libpyg.so, 0x0006): Library not loaded: '/Users/runner/hostedtoolcache/Python/3.10.8/x64/lib/libpython3.10.dylib'
+/Users/guchunhui/Documents/GNN-PPI/torch_geometric/typing.py:25: UserWarning: An issue occurred while importing 'pyg-lib'. Disabling its usage. Stacktrace: dlopen(/Users/guchunhui/opt/anaconda3/envs/Grape-Pi/lib/python3.10/site-packages/libpyg.so, 0x0006): Library not loaded: '/Users/runner/hostedtoolcache/Python/3.10.8/x64/lib/libpython3.10.dylib'
   Referenced from: '/Users/guchunhui/opt/anaconda3/envs/Grape-Pi/lib/python3.10/site-packages/libpyg.so'
   Reason: tried: '/Users/runner/hostedtoolcache/Python/3.10.8/x64/lib/libpython3.10.dylib' (no such file), '/usr/local/lib/libpython3.10.dylib' (no such file), '/usr/lib/libpython3.10.dylib' (no such file)
   warnings.warn(f"An issue occurred while importing 'pyg-lib'. "
+/Users/guchunhui/Documents/GNN-PPI/torch_geometric/typing.py:76: UserWarning: An issue occurred while importing 'torch-sparse'. Disabling its usage. Stacktrace: dlopen(/Users/guchunhui/opt/anaconda3/envs/Grape-Pi/lib/python3.10/site-packages/libpyg.so, 0x0006): Library not loaded: '/Users/runner/hostedtoolcache/Python/3.10.8/x64/lib/libpython3.10.dylib'
+  Referenced from: '/Users/guchunhui/opt/anaconda3/envs/Grape-Pi/lib/python3.10/site-packages/libpyg.so'
+  Reason: tried: '/Users/runner/hostedtoolcache/Python/3.10.8/x64/lib/libpython3.10.dylib' (no such file), '/usr/local/lib/libpython3.10.dylib' (no such file), '/usr/lib/libpython3.10.dylib' (no such file)
+  warnings.warn(f"An issue occurred while importing 'torch-sparse'. "
 ```
 
-
-
+The solution is to run the following
 ```angular2html
-pip uninstall pyg_lib torch_scatter torch_sparse torch_cluster torch_spline_conv -f https://data.pyg.org/whl/torch-2.0.0+cpu.html
+pip uninstall pyg_lib
 ```
+Source: https://github.com/pyg-team/pyg-lib/issues/217
 
-https://stackoverflow.com/questions/71728145/problem-with-python-pil-dylib-and-compatibility-with-macos

@@ -25,9 +25,8 @@ def train_epoch(logger, loader, model, optimizer, scheduler):
         optimizer.zero_grad()
         data.to(torch.device(cfg.accelerator))
         pred, true = model(data)
-        # semi-supervised learning only training on labeled data
-        mask = torch.logical_and(data.train_mask, data.loss_mask)
-        loss, pred_score = compute_loss(pred[mask], true[mask])
+        pred, true = pred[data.train_mask], true[data.train_mask]
+        loss, pred_score = compute_loss(pred, true)
         loss.backward()
         optimizer.step()
         total_loss += loss
@@ -37,13 +36,14 @@ def train_epoch(logger, loader, model, optimizer, scheduler):
             total_pred_score = torch.cat([total_pred_score, pred_score.detach().cpu()])
 
         if total_true is None:
-            total_true = true[mask].detach().cpu()
+            total_true = true.detach().cpu()
         else:
-            total_true = torch.cat([total_true, true[mask].detach().cpu()])
-        # only use labeled true
+            total_true = torch.cat([total_true, true.detach().cpu()])
+
+
     logger.update_stats(true=total_true,
                         pred=total_pred_score,
-                        loss=total_loss.item()/len(total_true),
+                        loss=total_loss.item(),     # the loss for gcnconv will be too small if being averaged
                         lr=scheduler.get_last_lr()[0],
                         time_used=time.time() - time_start,
                         params=cfg.params)
@@ -60,9 +60,8 @@ def eval_val_epoch(logger, loader, model):
     for data in loader:
         data.to(torch.device(cfg.accelerator))
         pred, true = model(data)
-        # semi-supervised learning only training on labeled data
-        mask = torch.logical_and(data.val_mask, data.loss_mask)
-        loss, pred_score = compute_loss(pred[mask], true[mask])
+        pred, true = pred[data.val_mask], true[data.val_mask]
+        loss, pred_score = compute_loss(pred, true)
         total_loss += loss
         if total_pred_score is None:
             total_pred_score = pred_score.detach().cpu()
@@ -70,13 +69,13 @@ def eval_val_epoch(logger, loader, model):
             total_pred_score = torch.cat([total_pred_score, pred_score.detach().cpu()])
 
         if total_true is None:
-            total_true = true[mask].detach().cpu()
+            total_true = true.detach().cpu()
         else:
-            total_true = torch.cat([total_true, true[mask].detach().cpu()])
+            total_true = torch.cat([total_true, true.detach().cpu()])
 
         logger.update_stats(true=total_true,
                             pred=total_pred_score,
-                            loss=total_loss.item()/len(total_true),
+                            loss=total_loss.item(),
                             lr=0,
                             time_used=time.time() - time_start,
                             params=cfg.params)
@@ -93,9 +92,8 @@ def eval_test_epoch(logger, loader, model):
     for data in loader:
         data.to(torch.device(cfg.accelerator))
         pred, true = model(data)
-        # semi-supervised learning only training on labeled data
-        mask = torch.logical_and(data.test_mask, data.loss_mask)
-        loss, pred_score = compute_loss(pred[mask], true[mask])
+        pred, true = pred[data.test_mask], true[data.test_mask]
+        loss, pred_score = compute_loss(pred, true)
         total_loss += loss
         if total_pred_score is None:
             total_pred_score = pred_score.detach().cpu()
@@ -103,23 +101,20 @@ def eval_test_epoch(logger, loader, model):
             total_pred_score = torch.cat([total_pred_score, pred_score.detach().cpu()])
 
         if total_true is None:
-            total_true = true[mask].detach().cpu()
+            total_true = true.detach().cpu()
         else:
-            total_true = torch.cat([total_true, true[mask].detach().cpu()])
+            total_true = torch.cat([total_true, true.detach().cpu()])
 
-        # extract data to calculate AUC curve from here
-        fpr, tpr, thresholds = metrics.roc_curve(total_true, total_pred_score)
-        # save('fpr', fpr)
 
         logger.update_stats(true=total_true,
                             pred=total_pred_score,
-                            loss=total_loss.item()/len(total_true),
+                            loss=total_loss.item(),
                             lr=0,
                             time_used=time.time() - time_start,
                             params=cfg.params)
 
-@register_train('protein')
-def train_protein(loggers, loaders, model, optimizer, scheduler):
+@register_train('gcnconv')
+def train(loggers, loaders, model, optimizer, scheduler):
     start_epoch = 0
     if cfg.train.auto_resume:
         start_epoch = load_ckpt(model, optimizer, scheduler,
