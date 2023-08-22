@@ -3,7 +3,7 @@ out_dir: results
 metric_best: auc
 dataset: # need to delete file in processed folder if change args under dataset category
   name: protein
-  dir: data/yeast-ORBI
+  dir: data/yeast-LCQ
   numeric_params:
   - protein probability
 #  - percent coverage
@@ -29,6 +29,7 @@ train:
   ckpt_clean: false
   sampler: full_batch # need !!!!! to change when use MLP
   epoch_resume: 0
+  model_train: gcnconv
 model:
   type: gnn
   loss_fun: binary_cross_entropy_with_weight

@@ -14,7 +14,8 @@ from torch_geometric.graphgym.config import (
 )
 from torch_geometric.graphgym.logger import set_printing
 from torch_geometric.graphgym.model_builder import create_model
-from torch_geometric.graphgym.train import GraphGymDataModule, train
+from torch_geometric.graphgym.register import train_dict
+from torch_geometric.graphgym.train import GraphGymDataModule
 from torch_geometric.graphgym.utils.agg_runs import agg_runs
 from torch_geometric.graphgym.utils.comp_budget import params_count
 from torch_geometric.graphgym.utils.device import auto_select_device
@@ -39,7 +40,12 @@ if __name__ == '__main__':
         seed_everything(cfg.seed)
         auto_select_device()
         # Set machine learning pipeline
-        datamodule = GraphGymDataModule()
+
+        if cfg.train.datamodule == 'graphsage':
+            datamodule = train_dict['GraphsageGraphGymDataModule']()
+        else:
+            datamodule = GraphGymDataModule()
+
         model = create_model()
         # Print model info
         logging.info(model)
@@ -50,12 +56,19 @@ if __name__ == '__main__':
         loggers = logger.create_logger()
         optimizer = optim.create_optimizer(model.model.parameters(), cfg.optim)
         scheduler = optim.create_scheduler(optimizer, cfg.optim)
-        custom_graphgym.train.protein.train_protein(loggers=loggers,
-                                                    loaders=datamodule.loaders,
-                                                    model=model,
-                                                    optimizer=optimizer,
-                                                    scheduler=scheduler)
-        # train(model, datamodule, logger=True)
+
+        if cfg.train.model_train == 'graphsage':
+            train = custom_graphgym.train.graphsage.train
+        else:
+            train =custom_graphgym.train.gcnconv.train
+
+        # train model and log performance metrics
+        train(
+            loggers=loggers,
+            loaders=datamodule.loaders,
+            model=model,
+            optimizer=optimizer,
+            scheduler=scheduler)
 
     # Aggregate results from different seeds
     agg_runs(cfg.out_dir, cfg.metric_best)
