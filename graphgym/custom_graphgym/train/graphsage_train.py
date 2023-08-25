@@ -18,7 +18,7 @@ from torch_geometric.loader import NeighborLoader
 import copy
 
 
-@register_train("GraphsageGraphGymDataModule")
+@register_train("graphsage_graphgym_datamodule")
 class CustomGraphGymDataModule(LightningDataModule):
     def __init__(self):
         # create_loader call create_dataset function under the hood and it initializes some model parameter such as
@@ -41,3 +41,29 @@ class CustomGraphGymDataModule(LightningDataModule):
             input_nodes=None,
             batch_size=cfg.train.batch_size, shuffle=False,
             num_workers=cfg.num_workers, pin_memory=True))
+
+@register_train("graphsage_train")
+def train(model: GraphGymModule, datamodule, logger: bool = True,
+          trainer_config: Optional[dict] = None):
+    warnings.filterwarnings('ignore', '.*use `CSVLogger` as the default.*')
+
+    callbacks = []
+    if logger:
+        callbacks.append(LoggerCallback())
+    if cfg.train.enable_ckpt:
+        ckpt_cbk = pl.callbacks.ModelCheckpoint(dirpath=get_ckpt_dir())
+        callbacks.append(ckpt_cbk)
+
+    trainer_config = trainer_config or {}
+    trainer = pl.Trainer(
+        **trainer_config,
+        enable_checkpointing=cfg.train.enable_ckpt,
+        callbacks=callbacks,
+        default_root_dir=cfg.out_dir,
+        max_epochs=cfg.optim.max_epoch,
+        accelerator=cfg.accelerator,
+        devices='auto' if not torch.cuda.is_available() else cfg.devices,
+    )
+
+    trainer.fit(model, train_dataloaders=datamodule.loaders[0], val_dataloaders=datamodule.loaders[1])
+    trainer.test(model, dataloaders=datamodule.loaders[1])

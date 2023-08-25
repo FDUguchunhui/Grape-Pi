@@ -12,6 +12,7 @@ from torch_geometric.graphgym.models.gnn import GNN
 from torch_geometric.graphgym.optim import create_optimizer, create_scheduler
 from torch_geometric.graphgym.register import network_dict, register_network, register_train
 
+
 class GraphsageGraphGymModule(GraphGymModule):
     def __init__(self, dim_in, dim_out, cfg):
         super().__init__(dim_in, dim_out, cfg)

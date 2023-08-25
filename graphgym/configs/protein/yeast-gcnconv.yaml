@@ -3,7 +3,7 @@ out_dir: results
 metric_best: auc
 dataset: # need to delete file in processed folder if change args under dataset category
   name: protein
-  dir: data/yeast-LCQ
+  dir: data/yeast-ORBI
   numeric_params:
   - protein probability
 #  - percent coverage

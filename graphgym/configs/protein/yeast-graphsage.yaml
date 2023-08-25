@@ -23,6 +23,7 @@ share:
   dim_out: 2  # dim_out 2 is for binary classification
 train:
   loss_pos_weight: -1.0
+  grape_pi: graphsage
   batch_size: 128
   eval_period: 10
   ckpt_period: 10
@@ -33,7 +34,6 @@ train:
   - 10
   - 5
   epoch_resume: 0
-  model_train: graphsage
 model:
   type: gnn
   loss_fun: binary_cross_entropy_with_weight
