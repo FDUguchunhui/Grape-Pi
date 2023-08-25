@@ -15,12 +15,10 @@ from torch_geometric.graphgym.config import (
 from torch_geometric.graphgym.logger import set_printing
 from torch_geometric.graphgym.model_builder import create_model
 from torch_geometric.graphgym.register import train_dict
-from torch_geometric.graphgym.train import GraphGymDataModule
+from torch_geometric.graphgym.train import GraphGymDataModule, train
 from torch_geometric.graphgym.utils.agg_runs import agg_runs
 from torch_geometric.graphgym.utils.comp_budget import params_count
 from torch_geometric.graphgym.utils.device import auto_select_device
-from torch_geometric.graphgym import optim
-from custom_graphgym.utils import logger
 
 if __name__ == '__main__':
     # Load cmd line args
@@ -41,34 +39,23 @@ if __name__ == '__main__':
         auto_select_device()
         # Set machine learning pipeline
 
-        if cfg.train.datamodule == 'graphsage':
-            datamodule = train_dict['GraphsageGraphGymDataModule']()
-        else:
+        model, datamodule = None, None
+        # use the right customized datamodule and graphgymmodule
+        if cfg.train.grape_pi == 'graphsage':
+            datamodule = train_dict['graphsage_graphgym_datamodule']()
+            model = train_dict['graphsage_create_model']()
+        elif cfg.train.grape_pi == 'gcnconv':
             datamodule = GraphGymDataModule()
+            model = train_dict['gcnconv_create_model']()
 
-        model = create_model()
         # Print model info
         logging.info(model)
         logging.info(cfg)
         cfg.params = params_count(model)
         logging.info('Num parameters: %s', cfg.params)
 
-        loggers = logger.create_logger()
-        optimizer = optim.create_optimizer(model.model.parameters(), cfg.optim)
-        scheduler = optim.create_scheduler(optimizer, cfg.optim)
-
-        if cfg.train.model_train == 'graphsage':
-            train = custom_graphgym.train.graphsage.train
-        else:
-            train =custom_graphgym.train.gcnconv.train
-
-        # train model and log performance metrics
-        train(
-            loggers=loggers,
-            loaders=datamodule.loaders,
-            model=model,
-            optimizer=optimizer,
-            scheduler=scheduler)
+        train = train_dict['graphsage_train']
+        train(model, datamodule, logger=True)
 
     # Aggregate results from different seeds
     agg_runs(cfg.out_dir, cfg.metric_best)

@@ -10,5 +10,4 @@ __all__ = [
 
 cfg.dataset.numeric_params = None
 cfg.train.loss_pos_weight = 1.0
-cfg.train.datamodule = None
-cfg.train.model_train = None
+cfg.train.grape_pi = 'graphsage'
