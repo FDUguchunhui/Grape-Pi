@@ -35,7 +35,7 @@ def set_printing():
     logging.basicConfig(**logging_cfg)
 
 
-class Logger(object):
+class Logger:
     def __init__(self, name='train', task_type=None):
         self.name = name
         self.task_type = task_type
@@ -104,7 +104,6 @@ class Logger(object):
             precision_score,
             recall_score,
             roc_auc_score,
-
         )
 
         true, pred_score = torch.cat(self._true), torch.cat(self._pred)
@@ -121,7 +120,6 @@ class Logger(object):
             'specificity': round(recall_score(true, pred_int, pos_label=0), cfg.round),
             'f1': round(f1_score(true, pred_int), cfg.round),
             'auc': round(r_a_score, cfg.round),
-
         }
 
     def classification_multi(self):
@@ -137,11 +135,11 @@ class Logger(object):
         true, pred = torch.cat(self._true), torch.cat(self._pred)
         return {
             'mae':
-                float(round(mean_absolute_error(true, pred), cfg.round)),
+            float(round(mean_absolute_error(true, pred), cfg.round)),
             'mse':
-                float(round(mean_squared_error(true, pred), cfg.round)),
+            float(round(mean_squared_error(true, pred), cfg.round)),
             'rmse':
-                float(round(math.sqrt(mean_squared_error(true, pred)), cfg.round))
+            float(round(math.sqrt(mean_squared_error(true, pred)), cfg.round))
         }
 
     def time_iter(self):
@@ -275,10 +273,10 @@ class LoggerCallback(Callback):
             logger.close()
 
     def _get_stats(
-            self,
-            epoch_start_time: int,
-            outputs: Dict[str, Any],
-            trainer: 'pl.Trainer',
+        self,
+        epoch_start_time: int,
+        outputs: Dict[str, Any],
+        trainer: 'pl.Trainer',
     ) -> Dict:
         return dict(
             true=outputs['true'].detach().cpu(),
@@ -290,80 +288,80 @@ class LoggerCallback(Callback):
         )
 
     def on_train_epoch_start(
-            self,
-            trainer: 'pl.Trainer',
-            pl_module: 'pl.LightningModule',
+        self,
+        trainer: 'pl.Trainer',
+        pl_module: 'pl.LightningModule',
     ):
         self._train_epoch_start_time = time.time()
 
     def on_validation_epoch_start(
-            self,
-            trainer: 'pl.Trainer',
-            pl_module: 'pl.LightningModule',
+        self,
+        trainer: 'pl.Trainer',
+        pl_module: 'pl.LightningModule',
     ):
         self._val_epoch_start_time = time.time()
 
     def on_test_epoch_start(
-            self,
-            trainer: 'pl.Trainer',
-            pl_module: 'pl.LightningModule',
+        self,
+        trainer: 'pl.Trainer',
+        pl_module: 'pl.LightningModule',
     ):
         self._test_epoch_start_time = time.time()
 
     def on_train_batch_end(
-            self,
-            trainer: 'pl.Trainer',
-            pl_module: 'pl.LightningModule',
-            outputs: Dict[str, Any],
-            batch: Any,
-            batch_idx: int,
-            unused: int = 0,
+        self,
+        trainer: 'pl.Trainer',
+        pl_module: 'pl.LightningModule',
+        outputs: Dict[str, Any],
+        batch: Any,
+        batch_idx: int,
+        unused: int = 0,
     ):
         stats = self._get_stats(self._train_epoch_start_time, outputs, trainer)
         self.train_logger.update_stats(**stats)
 
     def on_validation_batch_end(
-            self,
-            trainer: 'pl.Trainer',
-            pl_module: 'pl.LightningModule',
-            outputs: Optional[Dict[str, Any]],
-            batch: Any,
-            batch_idx: int,
-            dataloader_idx: int,
+        self,
+        trainer: 'pl.Trainer',
+        pl_module: 'pl.LightningModule',
+        outputs: Optional[Dict[str, Any]],
+        batch: Any,
+        batch_idx: int,
+        dataloader_idx: int = 0,
     ):
         stats = self._get_stats(self._val_epoch_start_time, outputs, trainer)
         self.val_logger.update_stats(**stats)
 
     def on_test_batch_end(
-            self,
-            trainer: 'pl.Trainer',
-            pl_module: 'pl.LightningModule',
-            outputs: Optional[Dict[str, Any]],
-            batch: Any,
-            batch_idx: int,
-            dataloader_idx: int,
+        self,
+        trainer: 'pl.Trainer',
+        pl_module: 'pl.LightningModule',
+        outputs: Optional[Dict[str, Any]],
+        batch: Any,
+        batch_idx: int,
+        dataloader_idx: int = 0,
     ):
         stats = self._get_stats(self._test_epoch_start_time, outputs, trainer)
         self.test_logger.update_stats(**stats)
 
     def on_train_epoch_end(
-            self,
-            trainer: 'pl.Trainer',
-            pl_module: 'pl.LightningModule',
+        self,
+        trainer: 'pl.Trainer',
+        pl_module: 'pl.LightningModule',
     ):
         self.train_logger.write_epoch(trainer.current_epoch)
 
     def on_validation_epoch_end(
-            self,
-            trainer: 'pl.Trainer',
-            pl_module: 'pl.LightningModule',
+        self,
+        trainer: 'pl.Trainer',
+        pl_module: 'pl.LightningModule',
     ):
         self.val_logger.write_epoch(trainer.current_epoch)
 
     def on_test_epoch_end(
-            self,
-            trainer: 'pl.Trainer',
-            pl_module: 'pl.LightningModule',
+        self,
+        trainer: 'pl.Trainer',
+        pl_module: 'pl.LightningModule',
     ):
         self.test_logger.write_epoch(trainer.current_epoch)
 
