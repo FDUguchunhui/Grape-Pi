@@ -2,7 +2,7 @@
 
 CONFIG=${CONFIG:-yeast-graphsage}
 GRID=${GRID:-yeast-graphsage}
-REPEAT=${REPEAT:-1}
+REPEAT=${REPEAT:-3}
 MAX_JOBS=${MAX_JOBS:-3}
 SLEEP=${SLEEP:-0}
 MAIN=${MAIN:-main}
