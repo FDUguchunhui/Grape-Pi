@@ -1,4 +1,5 @@
 # The recommended basic settings for Grape-Pi
+num_workers: 8
 out_dir: results
 metric_best: auc
 dataset: # need to delete file in processed folder if change args under dataset category
@@ -22,14 +23,13 @@ share:
   dim_in: -1
   dim_out: 2  # dim_out 2 is for binary classification
 train:
+  grape_pi: gcnconv
   loss_pos_weight: -1.0
   batch_size: 1
-  eval_period: 1
   ckpt_period: 10
   ckpt_clean: false
-  sampler: full_batch # need !!!!! to change when use MLP
+  sampler: full_batch
   epoch_resume: 0
-  model_train: gcnconv
 model:
   type: gnn
   loss_fun: binary_cross_entropy_with_weight

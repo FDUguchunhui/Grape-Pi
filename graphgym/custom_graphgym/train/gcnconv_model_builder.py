@@ -12,7 +12,7 @@ from torch_geometric.graphgym.optim import create_optimizer, create_scheduler
 from torch_geometric.graphgym.register import network_dict, register_network, register_train
 
 
-class GCNconvGymModule(GraphGymModule):
+class GCNConvGymModule(GraphGymModule):
     def __init__(self, dim_in, dim_out, cfg):
         super().__init__(dim_in, dim_out, cfg)
 
@@ -59,7 +59,7 @@ def create_model(to_device=True, dim_in=None, dim_out=None) -> GraphGymModule:
     if 'classification' == cfg.dataset.task_type and dim_out == 2:
         dim_out = 1
 
-    model = GraphGymModule(dim_in, dim_out, cfg)
+    model = GCNConvGymModule(dim_in, dim_out, cfg)
     if to_device:
         model.to(torch.device(cfg.accelerator))
     return model

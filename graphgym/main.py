@@ -44,17 +44,17 @@ if __name__ == '__main__':
         if cfg.train.grape_pi == 'graphsage':
             datamodule = train_dict['graphsage_graphgym_datamodule']()
             model = train_dict['graphsage_create_model']()
+            train = train_dict['graphsage_train']
         elif cfg.train.grape_pi == 'gcnconv':
             datamodule = GraphGymDataModule()
             model = train_dict['gcnconv_create_model']()
+            train = train
 
         # Print model info
         logging.info(model)
         logging.info(cfg)
         cfg.params = params_count(model)
         logging.info('Num parameters: %s', cfg.params)
-
-        train = train_dict['graphsage_train']
         train(model, datamodule, logger=True)
 
     # Aggregate results from different seeds

@@ -1,4 +1,5 @@
 # The recommended basic settings for GNN
+num_workers: 8
 out_dir: results
 metric_best: auc
 dataset: # need to delete file in processed folder if change args under dataset category
@@ -22,10 +23,9 @@ share:
   dim_in: -1
   dim_out: 2  # dim_out 2 is for binary classification
 train:
-  loss_pos_weight: -1.0
   grape_pi: graphsage
+  loss_pos_weight: -1.0
   batch_size: 128
-  eval_period: 10
   ckpt_period: 10
   ckpt_clean: false
   sampler: neighbor
