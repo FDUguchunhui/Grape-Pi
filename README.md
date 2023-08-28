@@ -274,7 +274,7 @@ rm .DS_Store # remove the file
 rm -r ../../processed # remove the ill-created `processed` data
 ```
 
-Mac user may encounter the following problem
+2. Mac user may encounter the following problem
 ```angular2html
 /Users/guchunhui/Documents/GNN-PPI/torch_geometric/typing.py:25: UserWarning: An issue occurred while importing 'pyg-lib'. Disabling its usage. Stacktrace: dlopen(/Users/guchunhui/opt/anaconda3/envs/Grape-Pi/lib/python3.10/site-packages/libpyg.so, 0x0006): Library not loaded: '/Users/runner/hostedtoolcache/Python/3.10.8/x64/lib/libpython3.10.dylib'
   Referenced from: '/Users/guchunhui/opt/anaconda3/envs/Grape-Pi/lib/python3.10/site-packages/libpyg.so'
@@ -292,3 +292,22 @@ pip uninstall pyg_lib
 ```
 Source: https://github.com/pyg-team/pyg-lib/issues/217
 
+
+3. If you see the following error during batch training, it means there is no enough system resources to performance such
+a batch training. Please be aware of the multiplication of `num_workers` in model configuration file and `MAX_JOBS` in
+parallel.sh should not exceed the total number of workers (threads) available in the system. For example, if 
+`num_workers`: 2 and MAX_JOBS=${MAX_JOBS:-6} will raise error in a computer with only 8 cpu threads.
+```angular2html
+Sanity Checking: 0it [00:00, ?it/s]Traceback (most recent call last):
+  File "/home/user/miniconda3/envs/grape-pi/lib/python3.10/multiprocessing/queues.py", line 244, in _feed
+  File "/home/user/miniconda3/envs/grape-pi/lib/python3.10/multiprocessing/reduction.py", line 51, in dumps
+  File "/home/user/miniconda3/envs/grape-pi/lib/python3.10/site-packages/torch/multiprocessing/reductions.py", line 369, in reduce_storage
+RuntimeError: user open shared memory object </torch_2070_3445168708_503> in read-write mode: Too many open files (24)
+Traceback (mosusercall last):
+  File "/home/user/miniconda3/envs/grape-pi/lib/python3.10/multiprocessing/queues.py", line 244, in _feed
+  File "/home/user/miniconda3/envs/grape-pi/lib/python3.10/multiprocessing/reduction.py", line 51, in dumps
+  File "/home/user/miniconda3/envs/grape-pi/lib/python3.10/site-packages/torch/multiprocessing/reductions.py", line 370, in reduce_storage
+  File "/home/user/miniconda3/envs/grape-pi/lib/python3.10/multiprocessing/reduction.py", line 198, in DupFd
+  File "/home/user/miniconda3/envs/grape-pi/lib/python3.10/multiprocessing/resource_sharer.py", line 48, in __init__
+OSError: [Errno 24] Too many open files
+```
