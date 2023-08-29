@@ -121,10 +121,10 @@ class ProteinBatchDataset(InMemoryDataset):
         # the mask used when calculating loss
         # Since the original graphgym only accept y as a dim=2 for output
         # add another variable to help distinguish those unlabelled nodes (y = 0 and loss_mask = 0)
-        loss_mask = np.where(y == -1, 0, 1)
-        y = torch.where(y == -1, 0, y)
-        data = Data(x=x, edge_index=edge_index, split=1, edge_attr=edge_attr, y=y,
-                    loss_mask=torch.tensor(loss_mask, dtype=torch.long))
+        # loss_mask = np.where(y == -1, 0, 1)
+        # y = torch.where(y == -1, 0, y)
+
+        data = Data(x=x, edge_index=edge_index, split=1, edge_attr=edge_attr, y=y)
 
         # calculate node degree
         # deg = degree(data.edge_index[0], data.num_nodes).reshape(-1, 1)
@@ -137,13 +137,6 @@ class ProteinBatchDataset(InMemoryDataset):
                                               num_test=cfg.dataset.split[2])
         data = split_transformer(data)
 
-        # set mask only to labeled data for using GraphGym framework
-        # data.train_mask = torch.logical_and(data.train_mask, data.loss_mask)
-        # data.val_mask = torch.logical_and(data.val_mask, data.loss_mask)
-        # data.test_mask = torch.logical_and(data.test_mask, data.loss_mask)
-        data.train = data.train_mask
-        data.val = data.val_mask
-        data.test = data.test_mask
         # store mapping information for translate back protein integer ID back to string ID
         data.mapping = mapping
 
@@ -152,19 +145,25 @@ class ProteinBatchDataset(InMemoryDataset):
     def _load_node_csv(self, path: str, numeric_cols: list = None, encoders: object = None,
                        protein_reference: '[iterable, iterable]' = None, **kwargs):
         df = pd.read_csv(path, index_col=0, **kwargs)
-        mapping = {index: i for i, index in enumerate(df.index.unique())}
 
         # extract feature doesn't need encoder
+        # based on protein reference set to create group-true label
+        confident_positive_proteins, confident_negative_proteins = protein_reference
+        y = np.where(df.index.isin(confident_positive_proteins), 1,
+                     (np.where(df.index.isin(confident_negative_proteins), 0, -1)))
+
+        # filter out proteins without label
+        df = df[y != -1]
+        y = y[y != -1]
+
+        mapping = {index: i for i, index in enumerate(df.index.unique())}
+
         x = torch.tensor(df.loc[:, numeric_cols].values, dtype=torch.float)
         if encoders is not None:
             xs = [encoder(df[col]) for col, encoder in encoders.items()]
             x2 = torch.cat(xs, dim=-1).view(-1, 1)
             x = torch.hstack([x, x2])
 
-        # based on protein reference set to create group-true label
-        confident_positive_proteins, confident_negative_proteins = protein_reference
-        y = np.where(df.index.isin(confident_positive_proteins), 1,
-                     (np.where(df.index.isin(confident_negative_proteins), 0, -1)))
         y = torch.tensor(y).view(-1).to(dtype=torch.long)
 
         return x, mapping, y

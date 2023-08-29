@@ -63,7 +63,10 @@ def train(model: GraphGymModule, datamodule, logger: bool = True,
         max_epochs=cfg.optim.max_epoch,
         accelerator=cfg.accelerator,
         devices='auto' if not torch.cuda.is_available() else cfg.devices,
-        enable_progress_bar=False
+        gradient_clip_val=0.5,
+        logger=False,
+        enable_progress_bar=False,
+        check_val_every_n_epoch=cfg.train.eval_period,
     )
 
     trainer.fit(model, train_dataloaders=datamodule.loaders[0], val_dataloaders=datamodule.loaders[1])

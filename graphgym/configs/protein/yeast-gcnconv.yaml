@@ -1,5 +1,5 @@
 # The recommended basic settings for Grape-Pi
-num_workers: 100
+num_workers: 8
 out_dir: results
 metric_best: auc
 dataset: # need to delete file in processed folder if change args under dataset category

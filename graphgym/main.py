@@ -48,7 +48,7 @@ if __name__ == '__main__':
         elif cfg.train.grape_pi == 'gcnconv':
             datamodule = GraphGymDataModule()
             model = train_dict['gcnconv_create_model']()
-            train = train
+            train = train_dict['gcnconv_train']
 
         # Print model info
         logging.info(model)
