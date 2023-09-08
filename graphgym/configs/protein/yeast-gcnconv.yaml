@@ -5,7 +5,7 @@ metric_best: auc
 dataset: # need to delete file in processed folder if change args under dataset category
   name: protein
   dir: data/yeast-ORBI
-  numeric_params:
+  numeric_columns:
   - protein probability
 #  - percent coverage
 #  - tot indep spectraß

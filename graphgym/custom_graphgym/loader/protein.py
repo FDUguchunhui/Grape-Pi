@@ -6,6 +6,8 @@ import os.path as osp
 import os
 
 import torch
+from overrides import overrides
+
 from torch_geometric.data import Data
 from torch_geometric.data import InMemoryDataset
 from torch_geometric.graphgym.register import register_loader
@@ -14,59 +16,47 @@ from torch_geometric.utils import degree
 from typing import Any, Callable, List, Optional, Tuple, Union
 from torch_geometric.data.dataset import to_list
 from torch_geometric.graphgym.config import cfg
+from torch_geometric.data.dataset import files_exist
 
 @register_loader('protein')
 def load_dataset_protein_batch(format, name, dataset_dir):
     if format == 'PyG':
         if name == 'protein':
-            numeric_params = cfg.dataset.numeric_params
-            dataset_raw = ProteinBatchDataset(dataset_dir, numeric_params=numeric_params)
+            dataset_raw = ProteinDataset(dataset_dir, numeric_columns=cfg.dataset.numeric_columns,
+                                         label_column=cfg.dataset.label_column)
             return dataset_raw
 
 
-class ProteinBatchDataset(InMemoryDataset):
-    def __init__(self, root, numeric_params, transform=None, pre_transform=None,
-                 pre_filter=None):
+class ProteinDataset(InMemoryDataset):
+    def __init__(self, root, numeric_columns, label_column, remove_unlabelled_data=True,
+                 transform=None, pre_transform=None, pre_filter=None):
         # some naming convention here
         # dir: absolute path to a folder
         # file: absolute path to a file
         # filename: file name without any path information
-        self.numeric_params = numeric_params
+        self.remove_unlabelled_data = remove_unlabelled_data
+        if numeric_columns is None:
+            raise ValueError('numeric_params is required for ProteinDataset')
+        self.numeric_columns = numeric_columns
+        self.label_column = label_column
         super().__init__(root, transform, pre_transform, pre_filter)
         self.data, self.slices = torch.load(self.processed_paths[0])
 
-
     @property
+    @overrides
     def raw_file_names(self):
-        # generate necessary file paths
-        raw_protein_dir = osp.join(self.root, 'raw/protein')
-        protein_dir_list = os.listdir(raw_protein_dir)
-        raw_interaction_dir = osp.join(self.root, 'raw/interaction')
-        interaction_dir_list = os.listdir(raw_interaction_dir)
-        raw_reference_dir = osp.join(self.root, 'raw/reference')
-        reference_dir_list = os.listdir(raw_reference_dir)
-        if len(interaction_dir_list) > 1:
-            raise ValueError('more than one interaction file is detected!')
-        elif len(interaction_dir_list) == 0:
-            raise ValueError('no interaction file is detected!')
-        elif len(protein_dir_list) == 0:
-            raise ValueError('no protein file detected!')
-        elif len(reference_dir_list) != 2:
-            raise ValueError('wrong number of reference file detected! (expect 2)')
-        raw_paths = {'protein': protein_dir_list,
-                     'interaction': interaction_dir_list[0], # only one interaction file is allowed
-                     'reference': reference_dir_list}
-        return raw_paths
+        # the files required for this dataset will be handled in raw_paths function
+        pass
 
     @property
+    @overrides
     def processed_file_names(self):
-        return ['data.pt']
+        return 'data.pt'
 
+    @overrides
     def process(self):
-
         # read data into data list
-        data_list = [self._process_single_datafile(protein_file) for protein_file in self.raw_paths[:-3]]
-
+        data_list = [self._process_single_datafile(protein_file) for protein_file in self.raw_paths['protein']]
         if self.pre_filter is not None:
             data_list = [data for data in data_list if self.pre_filter(data)]
 
@@ -77,46 +67,39 @@ class ProteinBatchDataset(InMemoryDataset):
         data, slices = self.collate(data_list)
         torch.save((data, slices), self.processed_paths[0])
 
+    @overrides
+    def download(self):
+        raise Exception('Download is not supported for this type of dataset')
+
     def _process_single_datafile(self, protein_filename: str) -> InMemoryDataset:
         '''
         Helper function for parse a single protein file to a torch.geometry.dataset using
         the given interaction file
         Args:
-            protein_filename:
+            protein_filename: the absolute path to the protein file
 
         Returns:
             torch.geometry.dataset
         '''
-        # read protein mass spectrometry data
-        # protein_file = osp.join(self.raw_dir, 'protein', protein_filename)
 
-        # if 'tsv' in os.path.basename(protein_filename):
-        #     protein_dat = pd.read_csv(protein_filename, index_col=0, sep='\t')    # use the first column for protein ID
-        # else:
-        #     protein_dat = pd.read_csv(protein_filename, index_col=0)    # use the first column for protein ID
-
-
-        numeric_cols = self.numeric_params
-
-        # get positive/and negative reference
-        positive_reference_file = osp.join(self.raw_dir, 'reference', 'positive.txt')
-        with open(positive_reference_file) as f:
-            positive_reference_list = f.read().splitlines()
-
-        negative_reference_file = osp.join(self.raw_dir, 'reference', 'negative.txt')
-        with open(negative_reference_file) as f:
-            negative_reference_list = f.read().splitlines()
+        positive_reference_list, negative_reference_list = None, None
+        if self.label_column is None:
+            # get positive/and negative reference
+            with open(self.raw_paths['positive_reference']) as f:
+                positive_reference_list = f.read().splitlines()
+            with open(self.raw_paths['negative_reference']) as f:
+                negative_reference_list = f.read().splitlines()
 
         # x is feature tensor for nodes
         # y is label tensor with y=1 if protein in the confident positive proteins, y=0 if in the confident negative proteins, -1 otherwise
         x, mapping, y = self._load_node_csv(path=protein_filename,
-                                            numeric_cols=numeric_cols,
-                                            protein_reference=[positive_reference_list,
-                                                               negative_reference_list])
+                                            numeric_columns=self.numeric_columns,
+                                            label_column=self.label_column,
+                                            positive_protein_reference=positive_reference_list,
+                                            negative_protein_reference=negative_reference_list)
 
         # read protein-protein-interaction data (the last file from self.raw_file_names)
-        interaction_dir = self.raw_paths[-3] # the third to last is interaction file path
-        edge_index, edge_attr = self._load_edge_csv(path=interaction_dir, mapping=mapping, numeric_cols=None)
+        edge_index, edge_attr = self._load_edge_csv(path=self.raw_paths['interaction'], mapping=mapping)
 
         # the mask used when calculating loss
         # Since the original graphgym only accept y as a dim=2 for output
@@ -142,34 +125,65 @@ class ProteinBatchDataset(InMemoryDataset):
 
         return data
 
-    def _load_node_csv(self, path: str, numeric_cols: list = None, encoders: object = None,
-                       protein_reference: '[iterable, iterable]' = None, **kwargs):
-        df = pd.read_csv(path, index_col=0, **kwargs)
+    def _load_node_csv(self, path: str, numeric_columns: list, label_column: str,
+                       encoders: object = None,
+                       positive_protein_reference: 'iterable' = None,
+                       negative_protein_reference: 'iterable' = None,
+                       **kwargs):
+        '''
+        Helper function for loading protein file
+        Args:
+            path:
+            numeric_columns:
+            label_column:
+            encoders:
+            positive_protein_reference:
+            negative_protein_reference:
+            **kwargs:
 
-        # extract feature doesn't need encoder
-        # based on protein reference set to create group-true label
-        confident_positive_proteins, confident_negative_proteins = protein_reference
-        y = np.where(df.index.isin(confident_positive_proteins), 1,
-                     (np.where(df.index.isin(confident_negative_proteins), 0, -1)))
+        Returns:
 
-        # filter out proteins without label
-        df = df[y != -1]
-        y = y[y != -1]
+        '''
 
+        # file can be either csv or tsv
+        if 'tsv' in os.path.basename(path):
+            df = pd.read_csv(path, index_col=0, sep='\t', **kwargs)
+        else:
+            df = pd.read_csv(path, index_col=0, **kwargs)
+
+        # if label is provided, use label column to create y
+        if label_column is not None:
+            y = df[label_column]
+        else:
+            # based on protein reference set to create group-true label
+            y = np.where(df.index.isin(positive_protein_reference), 1,
+                         (np.where(df.index.isin(negative_protein_reference), 0, pd.NA)))
+
+        # filter out proteins without label if needed
+        if self.remove_unlabelled_data:
+            y = y.astype(float)
+            row_filter = ~np.isnan(y)
+            df = df[row_filter]
+            y = y[row_filter]
+
+        # create mapping from protein ID to integer ID
+        # the mapping dict is needed to convert results back to protein ID
         mapping = {index: i for i, index in enumerate(df.index.unique())}
 
-        x = torch.tensor(df.loc[:, numeric_cols].values, dtype=torch.float)
+        # convert protein ID to integer ID
+        x = torch.tensor(df.loc[:, numeric_columns].values, dtype=torch.float)
         if encoders is not None:
             xs = [encoder(df[col]) for col, encoder in encoders.items()]
             x2 = torch.cat(xs, dim=-1).view(-1, 1)
             x = torch.hstack([x, x2])
 
+        # remove last dimension in y to make it a 1D tensor
         y = torch.tensor(y).view(-1).to(dtype=torch.long)
 
         return x, mapping, y
 
     def _load_edge_csv(self, path: str, mapping: dict,
-                       numeric_cols: list, encoders: dict = None, undirected: bool = True, **kwargs):
+                       numeric_cols: list = None, encoders: dict = None, undirected: bool = True, **kwargs):
         if 'tsv' in os.path.basename(path):
             df = pd.read_csv(path, usecols=[0, 1, 2], sep='\t', **kwargs)
         else:
@@ -178,6 +192,7 @@ class ProteinBatchDataset(InMemoryDataset):
         protein_data_acc = mapping.keys()
         df = df[df.iloc[:, 0].isin(protein_data_acc) & df.iloc[:, 1].isin(protein_data_acc)]
 
+        #   convert protein ID to integer ID
         src = [mapping[index] for index in df.iloc[:, 0]]
         dst = [mapping[index] for index in df.iloc[:, 1]]
         edge_index = torch.tensor([src, dst])
@@ -193,9 +208,9 @@ class ProteinBatchDataset(InMemoryDataset):
         # add reversed edges if the graph is undirected
         if undirected:
             edge_index_reverse = torch.tensor([dst, src])
-            edge_index = torch.cat([edge_index, edge_index_reverse], dim=-1)
-            if edge_attr is not None:   # only create indirect edge_attr when edge_attr is not None
-                edge_attr = torch.vstack([edge_attr, edge_attr])
+            edge_index = torch.hstack((edge_index, edge_index_reverse))
+            if edge_attr is not None:  # only create indirect edge_attr when edge_attr is not None
+                edge_attr = torch.hstack((edge_attr, edge_attr))
 
         return edge_index, edge_attr
 
@@ -203,18 +218,61 @@ class ProteinBatchDataset(InMemoryDataset):
     def raw_paths(self) -> List[str]:
         r"""The absolute filepaths that must be present in order to skip
         downloading."""
-        files = self.raw_file_names
-        # Prevent a common source of error in which `file_names` are not
-        # defined as a property.
-        if isinstance(files, Callable):
-            files = files()
-        protein_files = files['protein']
-        interaction_file = files['interaction']
-        reference_files = files['reference']
-        protein_paths = [osp.join(self.raw_dir, 'protein', f) for f in to_list(protein_files)]
-        interaction_path = osp.join(self.raw_dir, 'interaction', interaction_file)
-        reference_paths = [osp.join(self.raw_dir, 'reference', f) for f in to_list(reference_files)]
-        return protein_paths + [interaction_path] + reference_paths
+        # generate necessary file paths
+        raw_protein_dir = osp.join(self.root, 'raw/protein')
+        file_names = os.listdir(raw_protein_dir)
+        if len(file_names) == 0:
+            raise Exception('no protein file detected!')
+        else:
+            protein_file_paths = [os.path.abspath(os.path.join(raw_protein_dir, file_name)) for file_name in file_names]
+
+        raw_interaction_dir = osp.join(self.root, 'raw/interaction')
+        file_names = os.listdir(raw_interaction_dir)
+        if len(file_names) != 1:
+            raise Exception('Wrong number of interaction file detected! Expecting exactly one file.')
+        else:
+            interaction_file_path = os.path.abspath(os.path.join(raw_interaction_dir, file_names[0]))
+
+        return_raw_paths = protein_file_paths + [interaction_file_path]
+
+        if cfg.dataset.label_column is None:
+            raw_reference_dir = osp.join(self.root, 'raw/reference')
+            positive_reference_path = os.path.join(raw_reference_dir, 'positive.txt')
+            negative_reference_path = os.path.join(raw_reference_dir, 'negative.txt')
+            return_raw_paths += [positive_reference_path, negative_reference_path]
+
+        else:
+            positive_reference_path = None
+            negative_reference_path = None
+
+        # our data folder have special structure the original raw_paths will only used for check if the files exist
+        raw_paths_dict = {'protein': protein_file_paths,
+                               'interaction': interaction_file_path,  # only one interaction file is allowed
+                               'positive_reference': positive_reference_path,
+                               'negative_reference': negative_reference_path}
+
+        return raw_paths_dict
+
+    @overrides
+    def _download(self):
+        # check if the protein files exist otherwise raise exception
+        if not files_exist(self.raw_paths['protein']):
+            raise Exception('Protein file not found! Not supported for automatic download.')
+        # check if reference file exist when label_column is None otherwise raise exception
+        if self.label_column is None:
+            if ((not files_exist(self.raw_paths['positive_reference_path']))
+                    or (not files_exist(self.raw_paths['negative_reference_path']))):
+                raise Exception('Reference file not found while the label column in protein file not provided!'
+                                'not supported for automatic download.'
+                                ' Expecting positive.txt and negative.txt in reference folder')
+        # check interaction file exist otherwise download from STRING database
+        # elf.raw_paths['interaction'] is a str so len is 0 and files_exist will return False
+        if not osp.exists(self.raw_paths['interaction']):
+            os.makedirs(os.path.dirname(self.raw_paths['interaction']), exist_ok=True)
+            self.download()
+
+
+
 
 # for testing purpose
 if __name__ == '__main__':
@@ -226,10 +284,15 @@ if __name__ == '__main__':
 
     parser.add_argument('-r', '--root', required=True,
                         help='the root directory to look for files')
+    parser.add_argument('-n', '--numeric-columns', nargs='+', required=True,
+                        help='the numeric columns in the protein file used as feature')
+    parser.add_argument('-l', '--label-col', required=False, default=None,
+                        help='the label column in the protein file used as label. If not provided, '
+                             'a reference folder contains "positive.txt" and "negative.txt" is required in "raw" folder')
 
     args = parser.parse_args()
 
-    protein_dataset = ProteinBatchDataset(root=args.root)
+    protein_dataset = ProteinDataset(root=args.root, numeric_columns=args.numeric_columns, label_column=args.label_col)
     # loader = DataLoader(protein_dataset)
     # for data in loader:
     #     data

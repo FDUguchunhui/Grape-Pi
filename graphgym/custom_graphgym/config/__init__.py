@@ -8,6 +8,8 @@ __all__ = [
     if isfile(f) and not f.endswith('__init__.py')
 ]
 
-cfg.dataset.numeric_params = None
+cfg.dataset.numeric_columns = None
 cfg.train.loss_pos_weight = 1.0
 cfg.train.grape_pi = 'graphsage'
+cfg.dataset.label_column = None
+
