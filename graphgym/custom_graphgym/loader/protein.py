@@ -153,7 +153,7 @@ class ProteinDataset(InMemoryDataset):
 
         # if label is provided, use label column to create y
         if label_column is not None:
-            y = df[label_column]
+            y = df[label_column].to_numpy()
         else:
             # based on protein reference set to create group-true label
             y = np.where(df.index.isin(positive_protein_reference), 1,
@@ -161,10 +161,11 @@ class ProteinDataset(InMemoryDataset):
 
         # filter out proteins without label if needed
         if self.remove_unlabelled_data:
-            y = y.astype(float)
-            row_filter = ~np.isnan(y)
+            row_filter = ~pd.isnull(y)
             df = df[row_filter]
             y = y[row_filter]
+            y = y.astype(float)
+
 
         # create mapping from protein ID to integer ID
         # the mapping dict is needed to convert results back to protein ID
@@ -175,10 +176,12 @@ class ProteinDataset(InMemoryDataset):
         if encoders is not None:
             xs = [encoder(df[col]) for col, encoder in encoders.items()]
             x2 = torch.cat(xs, dim=-1).view(-1, 1)
+
+
             x = torch.hstack([x, x2])
 
         # remove last dimension in y to make it a 1D tensor
-        y = torch.tensor(y).view(-1).to(dtype=torch.long)
+        y = torch.tensor(y).view(-1).to(dtype=torch.float)
 
         return x, mapping, y
 
@@ -260,8 +263,8 @@ class ProteinDataset(InMemoryDataset):
             raise Exception('Protein file not found! Not supported for automatic download.')
         # check if reference file exist when label_column is None otherwise raise exception
         if self.label_column is None:
-            if ((not files_exist(self.raw_paths['positive_reference_path']))
-                    or (not files_exist(self.raw_paths['negative_reference_path']))):
+            if ((not osp.exists(self.raw_paths['positive_reference']))
+                    or (not osp.exists(self.raw_paths['negative_reference']))):
                 raise Exception('Reference file not found while the label column in protein file not provided!'
                                 'not supported for automatic download.'
                                 ' Expecting positive.txt and negative.txt in reference folder')

@@ -4,11 +4,11 @@ out_dir: results
 metric_best: auc
 dataset: # need to delete file in processed folder if change args under dataset category
   name: protein
-  dir: data/single
-  numeric_params:
-  - protein.score
+  dir: ../data/single
+  numeric_columns:
+  - protein_probability
 #  - percent coverage
-#  - tot indep spectra
+#  - tot indep spectraß
 #  - percent share of spectrum ids
 #  - mRNA(M)
   task: node
@@ -30,21 +30,20 @@ train:
   ckpt_clean: false
   sampler: full_batch
   epoch_resume: 0
-  eval_period: 10
 model:
   type: gnn
   loss_fun: binary_cross_entropy_with_weight
   # the weight is calculated by num_negative_sample/num_positive_sample
 gnn:
   layers_pre_mp: 2
-  layers_mp: 2
-  layers_post_mp: 1
+  layers_mp: 1
+  layers_post_mp: 2
   dim_inner: 10
   layer_type: gcnconv # sageconv gcnconv
-  stage_type: stack #skipsum skipconcat
+  stage_type: skipsum  # stack skipsum skipconcat
   batchnorm: false # batchnorm make things worse
   act: relu
-  dropout: 0.0
+  dropout: 0.3
   normalize_adj: false
   head: protein
 optim:

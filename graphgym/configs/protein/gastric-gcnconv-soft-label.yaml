@@ -1,19 +1,20 @@
-# The recommended basic settings for GNN
+# The recommended basic settings for Grape-Pi
 num_workers: 8
 out_dir: results
 metric_best: auc
 dataset: # need to delete file in processed folder if change args under dataset category
   name: protein
-  dir: ../data/single
+  dir: ../data/single-soft-label
   numeric_columns:
   - protein_probability
 #  - percent coverage
-#  - tot indep spectra
+#  - tot indep spectraß
 #  - percent share of spectrum ids
 #  - mRNA(M)
+  label_column: protein_probability_soft_label
   task: node
   task_type: classification
-  transductive: false
+  transductive: true
   transform: none
   encoder: false
   node_encoder: false
@@ -23,38 +24,34 @@ share:
   dim_in: -1
   dim_out: 2  # dim_out 2 is for binary classification
 train:
-  grape_pi: graphsage
+  grape_pi: gcnconv
   loss_pos_weight: -1.0
-  batch_size: 128
+  batch_size: 1
   ckpt_period: 10
   ckpt_clean: false
-  sampler: neighbor
-  neighbor_sizes: # sample 20 from 1-order neighbor and so on
-  - 20
-  - 10
-  - 5
+  sampler: full_batch
   epoch_resume: 0
 model:
   type: gnn
-  loss_fun: binary_cross_entropy_with_weight
+  loss_fun: cross_entropy
   # the weight is calculated by num_negative_sample/num_positive_sample
 gnn:
   layers_pre_mp: 2
-  layers_mp: 2
-  layers_post_mp: 1
+  layers_mp: 1
+  layers_post_mp: 2
   dim_inner: 10
-  layer_type: sageconv # sageconv gcnconv
-  stage_type: stack #skipsum skipconcat
-  batchnorm: false
+  layer_type: gcnconv # sageconv gcnconv
+  stage_type: skipsum  # stack skipsum skipconcat
+  batchnorm: false # batchnorm make things worse
   act: relu
-  dropout: 0.0
+  dropout: 0.3
   normalize_adj: false
   head: protein
 optim:
   optimizer: adam
   base_lr: 0.001
   weight_decay: 5e-4
-  max_epoch: 100
+  max_epoch: 300
   # try not use schedule and check fluctuation of training curve
   scheduler: none
 

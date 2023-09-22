@@ -1,0 +1,15 @@
+# csvstack *_IA_final_peptide.csv > combined_peptide.csv
+
+# combined water protein data directly from remote driver
+
+# change working directory to the data folder or create a alias of the path
+# export PROTEIN_RAW_DATA=/Volumes/hanash/Hanash_Lab_GPFS/Chunhui/100FDR
+csvstack -e utf-8 -v  *_final_protein.csv > SG_combined_protein.csv
+
+# pre-processing data with information from uniprot
+python CSVTransformer.py /Users/cgu3/Library/CloudStorage/OneDrive-InsideMDAnderson/proteomics/project/PPI-for-protein-detection/data/raw-data/combined-protein/combined_protein_7103.csv -a /Users/cgu3/Library/CloudStorage/OneDrive-InsideMDAnderson/proteomics/project/PPI-for-protein-detection/data/uniprot_protein_entries.tsv
+
+
+
+python csv_transformer.py /Users/cgu3/Library/CloudStorage/OneDrive-InsideMDAnderson/proteomics/project/PPI-for-protein-detection/data/raw-data/combined-protein/combined_protein_7103.csv -a /Users/cgu3/Library/CloudStorage/OneDrive-InsideMDAnderson/proteomics/project/PPI-for-protein-detection/data/uniprot_protein_entries.tsv -o /Users/cgu3/Library/CloudStorage/OneDrive-InsideMDAnderson/proteomics/project/PPI-for-protein-detection/data/raw-data/processed-combined-protein/combined_protein_7103_processed.csv
+

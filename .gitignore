@@ -32,9 +32,6 @@ benchmark/results/
 
 !torch_geometric/data/
 !test/data/
-!graphgym/data/
-graphgym/data/single
-graphgym/data/batch
-graphgym/data/yeast/processed
+data/
 
 graphgym/configs/*_grid_*
