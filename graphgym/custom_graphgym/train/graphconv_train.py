@@ -9,7 +9,7 @@ from torch_geometric.graphgym import create_loader, register_train
 from torch_geometric.graphgym.checkpoint import get_ckpt_dir
 from torch_geometric.graphgym.config import cfg
 from torch_geometric.graphgym.imports import pl
-from torch_geometric.graphgym.logger import LoggerCallback
+from graphgym.logger import LoggerCallback
 from torch_geometric.graphgym.model_builder import GraphGymModule
 
 

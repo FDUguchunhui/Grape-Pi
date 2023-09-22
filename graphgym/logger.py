@@ -122,6 +122,18 @@ class Logger:
             'auc': round(r_a_score, cfg.round),
         }
 
+    # soft label classification for protein probability prediction
+    def classification_binary_soft_label(self):
+        return {
+            'accuracy': 100.0,
+            # 'accuracy': round(accuracy_score(true, pred_int), cfg.round),
+            # 'precision': round(precision_score(true, pred_int), cfg.round),
+            # 'recall': round(recall_score(true, pred_int), cfg.round),
+            # 'f1': round(f1_score(true, pred_int), cfg.round),
+            # 'auc': round(r_a_score, cfg.round),
+        }
+
+
     def classification_multi(self):
         from sklearn.metrics import accuracy_score
 
@@ -189,6 +201,8 @@ class Logger:
                 task_stats = self.regression()
             elif self.task_type == 'classification_binary':
                 task_stats = self.classification_binary()
+            elif self.task_type == 'classification_binary_soft_label':
+                task_stats = self.classification_binary_soft_label()
             elif self.task_type == 'classification_multi':
                 task_stats = self.classification_multi()
             else:

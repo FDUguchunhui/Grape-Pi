@@ -1,4 +1,4 @@
-# The recommended basic settings for Grape-Pi
+# The recommended basic settings for GNN
 num_workers: 8
 out_dir: results
 metric_best: auc
@@ -7,14 +7,9 @@ dataset: # need to delete file in processed folder if change args under dataset 
   dir: ../data/single-soft-label
   numeric_columns:
   - protein_probability
-#  - percent coverage
-#  - tot indep spectraß
-#  - percent share of spectrum ids
-#  - mRNA(M)
-  label_column: protein_probability_soft_label
   task: node
   task_type: classification_binary_soft_label
-  transductive: true
+  transductive: false
   transform: none
   encoder: false
   node_encoder: false
@@ -22,36 +17,41 @@ dataset: # need to delete file in processed folder if change args under dataset 
   split: [0.6, 0.2, 0.2] # train, val, test
 share:
   dim_in: -1
-  dim_out: 1  # dim_out 1 is for binary classification protein probability
+  dim_out: 1
 train:
-  grape_pi: gcnconv
+  grape_pi: graphsage
   loss_pos_weight: -1.0
-  batch_size: 1
+  batch_size: 128
   ckpt_period: 10
   ckpt_clean: false
-  sampler: full_batch
+  sampler: neighbor
+  eval_period: 10
+  neighbor_sizes: # sample 20 from 1-order neighbor and so on
+  - 20
+  - 10
+  - 5
   epoch_resume: 0
 model:
   type: gnn
   loss_fun: cross_entropy
   # the weight is calculated by num_negative_sample/num_positive_sample
 gnn:
-  layers_pre_mp: 2
+  layers_pre_mp: 1
   layers_mp: 1
-  layers_post_mp: 2
+  layers_post_mp: 1
   dim_inner: 10
-  layer_type: gcnconv # sageconv gcnconv
-  stage_type: skipsum  # stack skipsum skipconcat
-  batchnorm: false # batchnorm make things worse
+  layer_type: sageconv # sageconv gcnconv
+  stage_type: stack #skipsum skipconcat
+  batchnorm: false
   act: relu
-  dropout: 0.3
+  dropout: 0.0
   normalize_adj: false
   head: protein
 optim:
   optimizer: adam
   base_lr: 0.001
   weight_decay: 5e-4
-  max_epoch: 300
+  max_epoch: 100
   # try not use schedule and check fluctuation of training curve
   scheduler: none
 

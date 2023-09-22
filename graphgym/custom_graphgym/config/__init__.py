@@ -12,4 +12,3 @@ cfg.dataset.numeric_columns = None
 cfg.train.loss_pos_weight = 1.0
 cfg.train.grape_pi = 'graphsage'
 cfg.dataset.label_column = None
-

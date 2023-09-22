@@ -2,15 +2,13 @@ import warnings
 from typing import Optional
 
 import torch
-from torch.utils.data import DataLoader
 
 from torch_geometric.data.lightning.datamodule import LightningDataModule
 from torch_geometric.graphgym.checkpoint import get_ckpt_dir
 from torch_geometric.graphgym.config import cfg
 from torch_geometric.graphgym.imports import pl
-from torch_geometric.graphgym.loader import load_dataset, create_dataset
-# from torch_geometric.graphgym.logger import LoggerCallback
-from ..utils.logger import LoggerCallback
+from torch_geometric.graphgym.loader import create_dataset
+from graphgym.logger import LoggerCallback
 from torch_geometric.graphgym.model_builder import GraphGymModule
 from torch_geometric.graphgym.register import register_train
 from torch_geometric.loader import NeighborLoader

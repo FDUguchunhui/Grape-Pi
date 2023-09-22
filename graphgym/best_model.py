@@ -13,17 +13,14 @@ from torch_geometric.graphgym.config import (
     cfg,
     dump_cfg,
     load_cfg,
-    set_out_dir,
-    set_run_dir, get_fname,
+    get_fname,
 )
 from torch_geometric.graphgym.logger import set_printing
 from torch_geometric.graphgym.model_builder import create_model
-from torch_geometric.graphgym.train import GraphGymDataModule, train
-from torch_geometric.graphgym.utils.agg_runs import agg_runs
+from torch_geometric.graphgym.train import GraphGymDataModule
 from torch_geometric.graphgym.utils.comp_budget import params_count
 from torch_geometric.graphgym.utils.device import auto_select_device
 from torch_geometric.graphgym import optim, compute_loss
-from custom_graphgym.utils import logger
 from torch_geometric.graphgym.checkpoint import load_ckpt
 
 
