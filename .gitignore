@@ -3,7 +3,6 @@ __pycache__/
 .DS_Store
 ._.DS_Store
 
-data/
 build/
 dist/
 alpha/
@@ -31,11 +30,13 @@ examples/**/*.pdf
 benchmark/results/
 
 !torch_geometric/data/
-!test/data/
+!test/data
+
+
+data/*
 !data/yeast-LCQ/
 !data/yeast-LCQ-mRNA/
 !data/yeast-ORBI/
 !data/yeast-ORBI-mRNA/
-data/
 
 graphgym/configs/*_grid_*
