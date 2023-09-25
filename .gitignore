@@ -32,6 +32,10 @@ benchmark/results/
 
 !torch_geometric/data/
 !test/data/
+!data/yeast-LCQ/
+!data/yeast-LCQ-mRNA/
+!data/yeast-ORBI/
+!data/yeast-ORBI-mRNA/
 data/
 
 graphgym/configs/*_grid_*
