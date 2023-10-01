@@ -78,7 +78,7 @@ cd Grape-Pi
 ## Install Grape-Pi in editable mode:
 
 ```angular2html
-pip install -e ".[dev,full]"
+pip install -e ".[dev,full, grape_pi]"
 ```
 
 ## Data preparation
@@ -177,19 +177,6 @@ optim:
   scheduler: none
 ```
 
-### Pip Wheels
-
-We alternatively provide pip wheels for all major OS/PyTorch/CUDA combinations, see [here](https://data.pyg.org/whl).
-
-#### PyTorch 1.13
-
-To install the binaries for PyTorch 1.13.0, simply run
-
-```
-pip install pyg_lib torch_scatter torch_sparse -f https://data.pyg.org/whl/torch-1.13.0+${CUDA}.html
-pip install torch_geometric
-```
-
 During the programming first running, a new "processed" folder will create under the provided data folder which stores the
 converted torch_geometry.data.dataset format and additional processed files. This allows a one-time processing and the 
 next time data the same data is used, the processed file will be loaded directly to save time.
@@ -197,12 +184,48 @@ next time data the same data is used, the processed file will be loaded directly
 **Caution**: In case you have updated the raw files, you need to manually deleted the entire `processed` folder to let the program
 rebuild processed data from modified raw files.
 
-For additional but optional functionality, run
+The instruction above only aim to provide a start point for user to check how we did our experiment.
+Please refer to https://github.com/snap-stanford/GraphGym for more details about how to config a batch experiment.
 
-```
-pip install torch_cluster torch_spline_conv -f https://data.pyg.org/whl/torch-1.13.0+${CUDA}.html
+
+##  Set up batch experiment
+Batch experiment allow user to run multiple experiments with different hyper-parameters in sequential with or without
+parallel. To run a batch experiment, you need to provide three configuration files. The first configuration file is the
+model configuration file as described above. The second configuration file is the grid search configuration file which
+specify the hyper-parameters to be searched. The third configuration file is the batch experiment configuration file which
+specify the batch experiment setting such as how many times to repeat the experiment, how many jobs to run in parallel,
+etc.
+
+### Set up grid search configuration
+Grid search configuration file is a text file with each row specify a hyper-parameter to be searched. The first column
+is the name of the hyper-parameter in the model configuration file, the second column is the alias of the hyper-parameter
+which will be used in the output file name, the third column is the range of the hyper-parameter to be searched.
+
+
+```angular2html
+# Format for each row: name in config.py; alias; range to search
+# No spaces, except between these 3 fields
+# Line breaks are used to union different grid search spaces
+# Feel free to add '#' to add comments
+
+gnn.dropout drop [0.0,0.3,0.6]
+gnn.layers_pre_mp l_pre [1,2]
+gnn.layers_mp l_mp [1,2,3]
+gnn.layers_post_mp l_post [1,2]
+gnn.stage_type stage ['stack','skipsum','skipconcat']
+optim.max_epoch epoch [100,200,300]
+train.ckpt_clean ckpt_clean [True]
 ```
 
+### setup batch experiment additional configuration
+Batch experiment additional configuration file is a bash file with each row specify a bash variable to be used in the
+batch experiment.  The first parameter `CONFIG` is the name of the model configuration file (expect to find it under 
+`configs/protein/` folder. The second parameter `GRID` is the name of the grid search configuration file (expect to find
+it under `grids` folder. The third parameter `REPEAT` is the number of times to repeat the experiment. The fourth parameter
+`MAX_JOBS` is the number of jobs to run in parallel. The fifth parameter `SLEEP` is the time to sleep between each job.
+The sixth parameter `MAIN` is the name of the main python file to execute each experiment.
+
+```angular2html
 CONFIG=${CONFIG:-protein-yeast-gcnconv}
 GRID=${GRID:-protein-yeast-gcnconv}
 REPEAT=${REPEAT:-3}
@@ -210,11 +233,26 @@ MAX_JOBS=${MAX_JOBS:-1}
 SLEEP=${SLEEP:-0}
 MAIN=${MAIN:-main}
 
-In case you want to experiment with the latest PyG features which are not fully released yet, ensure that `pyg_lib`, `torch_scatter` and `torch_sparse` are installed by [following the steps mentioned above](#pip-wheels), and install either the **nightly version** of PyG via
+# generate configs (aft
+# er controlling computational budget)
+# please remove --config_budget, if don't control computational budget
+python configs_gen.py --config configs/protein/${CONFIG}.yaml \
+  --grid grids/${GRID}.txt \
+  --out_dir configs
+#python configs_gen.py --config configs/ChemKG/${CONFIG}.yaml --config_budget configs/ChemKG/${CONFIG}.yaml --grid grids/ChemKG/${GRID}.txt --out_dir configs
+# run batch of configs
+# Args: config_dir, num of repeats, max jobs running, sleep time
+bash parallel.sh configs/${CONFIG}_grid_${GRID} $REPEAT $MAX_JOBS $SLEEP $MAIN
+# rerun missed / stopped experiments
+bash parallel.sh configs/${CONFIG}_grid_${GRID} $REPEAT $MAX_JOBS $SLEEP $MAIN
+# rerun missed / stopped experiments
+bash parallel.sh configs/${CONFIG}_grid_${GRID} $REPEAT $MAX_JOBS $SLEEP $MAIN
 
+# aggregate results for the batch
+python agg_batch.py --dir results/${CONFIG}_grid_${GRID}
 ```
-The instruction above only aim to provide a start point for user to check how we did our experiment.
-Please refer to https://github.com/snap-stanford/GraphGym for more details about how to config a batch experiment.
+
+
 
 ### run batch experiment
 ```angular2html

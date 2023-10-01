@@ -88,8 +88,12 @@ full = [
     "opt_einsum",
     "statsmodels",
     "rdkit",
+]
+
+grape_pi = [
+    "overrides",
     "tensorboardX",
-    "ogb",
+    "ogb"
 ]
 
 [project.urls]
