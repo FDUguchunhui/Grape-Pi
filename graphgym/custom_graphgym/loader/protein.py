@@ -223,14 +223,14 @@ class ProteinDataset(InMemoryDataset):
         downloading."""
         # generate necessary file paths
         raw_protein_dir = osp.join(self.root, 'raw/protein')
-        file_names = os.listdir(raw_protein_dir)
+        file_names = [f for f in os.listdir(raw_protein_dir) if not f.startswith('.')]
         if len(file_names) == 0:
             raise Exception('no protein file detected!')
         else:
             protein_file_paths = [os.path.abspath(os.path.join(raw_protein_dir, file_name)) for file_name in file_names]
 
         raw_interaction_dir = osp.join(self.root, 'raw/interaction')
-        file_names = os.listdir(raw_interaction_dir)
+        file_names = [f for f in os.listdir(raw_interaction_dir) if not f.startswith('.')]
         if len(file_names) != 1:
             raise Exception('Wrong number of interaction file detected! Expecting exactly one file.')
         else:
