@@ -14,7 +14,6 @@ class GraphsageGraphGymModule(GraphGymModule):
         super().__init__(dim_in, dim_out, cfg)
 
 
-
     def training_step(self, batch, *args, **kwargs):
         logits, true = self(batch)
         loss, pred_score = compute_loss(logits, true)

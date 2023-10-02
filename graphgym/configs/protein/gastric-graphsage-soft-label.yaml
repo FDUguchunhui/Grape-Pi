@@ -5,6 +5,7 @@ metric_best: auc
 dataset: # need to delete file in processed folder if change args under dataset category
   name: protein
   dir: ../data/single-soft-label
+  label_column: protein_probability_soft_label
   numeric_columns:
   - protein_probability
   task: node
