@@ -38,11 +38,11 @@ model:
   # the weight is calculated by num_negative_sample/num_positive_sample
 gnn:
   layers_pre_mp: 1
-  layers_mp: 1
+  layers_mp: 2
   layers_post_mp: 1
   dim_inner: 10
   layer_type: sageconv # sageconv gcnconv
-  stage_type: stack #skipsum skipconcat
+  stage_type: skipsum #skipsum skipconcat
   batchnorm: false
   act: relu
   dropout: 0.0
@@ -52,7 +52,7 @@ optim:
   optimizer: adam
   base_lr: 0.001
   weight_decay: 5e-4
-  max_epoch: 100
+  max_epoch: 200
   # try not use schedule and check fluctuation of training curve
   scheduler: none
 
