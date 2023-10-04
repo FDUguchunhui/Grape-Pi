@@ -21,7 +21,7 @@ dataset:
   encoder_dim: 128
   encoder_name: db
   format: PyG
-  label_column: null
+  label_column: protein_probability_soft_label
   label_table: none
   location: local
   name: protein
@@ -67,7 +67,7 @@ gnn:
   normalize_adj: false
   self_msg: concat
   skip_every: 1
-  stage_type: stack
+  stage_type: skipsum
 gpu_mem: false
 mem:
   inplace: false
