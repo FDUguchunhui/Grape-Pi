@@ -16,6 +16,7 @@ class GraphsageGraphGymModule(GraphGymModule):
 
     def training_step(self, batch, *args, **kwargs):
         logits, true = self(batch)
+        logits, true = logits[:batch.batch_size], true[:batch.batch_size]
         loss, pred_score = compute_loss(logits, true)
         step_end_time = time.time()
         return dict(loss=loss, true=true, pred_score=pred_score.detach(),
@@ -24,7 +25,12 @@ class GraphsageGraphGymModule(GraphGymModule):
 
     def validation_step(self, batch, *args, **kwargs):
         logits, true = self(batch)
-        logits, true = logits[batch.val_mask], true[batch.val_mask]
+        # create mask to filter the original mini-batch nodes
+        # https://pytorch-geometric.readthedocs.io/en/latest/_modules/torch_geometric/loader/neighbor_loader.html
+        batch_mask = torch.cat([torch.ones(batch.batch_size), torch.zeros(len(batch.y) - batch.batch_size)], dim=0)
+        batch_mask = batch_mask.bool()
+        # for each batch, only use test nodes in the original mini-batch nodes
+        logits, true = logits[batch_mask & batch.val_mask], true[batch_mask & batch.val_mask]
         loss, pred_score = compute_loss(logits, true)
         step_end_time = time.time()
         return dict(loss=loss, true=true, pred_score=pred_score.detach(),
@@ -33,7 +39,12 @@ class GraphsageGraphGymModule(GraphGymModule):
 
     def test_step(self, batch, *args, **kwargs):
         logits, true = self(batch)
-        logits, true = logits[batch.test_mask], true[batch.test_mask]
+        # create mask to filter the original mini-batch nodes
+        # https://pytorch-geometric.readthedocs.io/en/latest/_modules/torch_geometric/loader/neighbor_loader.html
+        batch_mask = torch.cat([torch.ones(batch.batch_size), torch.zeros(len(batch.y) - batch.batch_size)], dim=0)
+        batch_mask = batch_mask.bool()
+        # for each batch, only use test nodes in the original mini-batch nodes
+        logits, true = logits[batch_mask & batch.test_mask], true[batch_mask & batch.test_mask]
         loss, pred_score = compute_loss(logits, true)
 
         step_end_time = time.time()

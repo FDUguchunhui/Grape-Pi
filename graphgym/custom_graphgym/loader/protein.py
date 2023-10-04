@@ -18,6 +18,9 @@ from torch_geometric.data.dataset import to_list
 from torch_geometric.graphgym.config import cfg
 from torch_geometric.data.dataset import files_exist
 
+from torch_geometric import  seed_everything
+seed_everything(1234)
+
 @register_loader('protein')
 def load_dataset_protein_batch(format, name, dataset_dir):
     if format == 'PyG':
