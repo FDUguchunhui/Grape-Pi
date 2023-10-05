@@ -8,7 +8,6 @@ dataset: # need to delete file in processed folder if change args under dataset 
   label_column: protein_probability_soft_label
   numeric_columns:
   - protein_probability
-  - mRNA_TPM
   task: node
   task_type: classification_binary_soft_label
   transductive: false
@@ -38,10 +37,10 @@ model:
   loss_fun: cross_entropy
   # the weight is calculated by num_negative_sample/num_positive_sample
 gnn:
-  layers_pre_mp: 1
+  layers_pre_mp: 0
   layers_mp: 1
   layers_post_mp: 1
-  dim_inner: 10
+  dim_inner: 20
   layer_type: sageconv # sageconv gcnconv
   stage_type: skipsum #skipsum skipconcat
   batchnorm: false
