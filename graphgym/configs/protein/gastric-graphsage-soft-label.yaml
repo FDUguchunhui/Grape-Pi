@@ -8,6 +8,8 @@ dataset: # need to delete file in processed folder if change args under dataset 
   label_column: protein_probability_soft_label
   numeric_columns:
   - protein_probability
+#  - mRNA_TPM
+  rebuild: true
   task: node
   task_type: classification_binary_soft_label
   transductive: false

@@ -1,3 +1,4 @@
+import sys
 from typing import List
 
 import numpy as np
@@ -8,13 +9,14 @@ import os
 import torch
 from overrides import overrides
 
+import warnings
 from torch_geometric.data import Data
 from torch_geometric.data import InMemoryDataset
 from torch_geometric.graphgym.register import register_loader
 import torch_geometric.transforms as T
 from torch_geometric.utils import degree
 from typing import Any, Callable, List, Optional, Tuple, Union
-from torch_geometric.data.dataset import to_list
+from torch_geometric.data.dataset import to_list, _repr
 from torch_geometric.graphgym.config import cfg
 from torch_geometric.data.dataset import files_exist
 
@@ -26,17 +28,28 @@ def load_dataset_protein_batch(format, name, dataset_dir):
     if format == 'PyG':
         if name == 'protein':
             dataset_raw = ProteinDataset(dataset_dir, numeric_columns=cfg.dataset.numeric_columns,
-                                         label_column=cfg.dataset.label_column)
+                                         label_column=cfg.dataset.label_column, rebuild=cfg.dataset.rebuild)
             return dataset_raw
 
 
 class ProteinDataset(InMemoryDataset):
-    def __init__(self, root, numeric_columns, label_column, remove_unlabelled_data=True,
+    '''
+    Args:
+        root: the root directory to look for files
+        numeric_columns: the numeric columns in the protein file used as feature
+        label_column: the label column in the protein file used as label. If not provided,
+        a reference folder contains "positive.txt" and "negative.txt" is required in "raw" folder
+        remove_unlabelled_data: whether to remove unlabelled data
+        rebuild: whether to rebuild the dataset even if the processed file already exist
+        transform: the transform function to apply to the dataset
+        pre_transform: the pre_transform function to apply to the dataset
+        pre_filter: the pre_filter function to apply to the dataset
+    '''
+
+    def __init__(self, root, numeric_columns, label_column, remove_unlabelled_data=True, rebuild=False,
                  transform=None, pre_transform=None, pre_filter=None):
-        # some naming convention here
-        # dir: absolute path to a folder
-        # file: absolute path to a file
-        # filename: file name without any path information
+
+        self.rebuild = rebuild
         self.remove_unlabelled_data = remove_unlabelled_data
         if numeric_columns is None:
             raise ValueError('numeric_params is required for ProteinDataset')
@@ -277,6 +290,49 @@ class ProteinDataset(InMemoryDataset):
             os.makedirs(os.path.dirname(self.raw_paths['interaction']), exist_ok=True)
             self.download()
 
+    @overrides
+    def _process(self):
+        f = osp.join(self.processed_dir, 'pre_transform.pt')
+        if osp.exists(f) and torch.load(f) != _repr(self.pre_transform):
+            warnings.warn(
+                f"The `pre_transform` argument differs from the one used in "
+                f"the pre-processed version of this dataset. If you want to "
+                f"make use of another pre-processing technique, make sure to "
+                f"delete '{self.processed_dir}' first")
+
+        f = osp.join(self.processed_dir, 'pre_filter.pt')
+        if osp.exists(f) and torch.load(f) != _repr(self.pre_filter):
+            warnings.warn(
+                "The `pre_filter` argument differs from the one used in "
+                "the pre-processed version of this dataset. If you want to "
+                "make use of another pre-fitering technique, make sure to "
+                "delete '{self.processed_dir}' first")
+
+
+
+        if files_exist(self.processed_paths) and not self.rebuild:  # pragma: no cover
+            return
+
+        if self.log and 'pytest' not in sys.modules:
+            if self.rebuild:
+                print('Rebuilding...', file=sys.stderr)
+            else:
+                print('Processing...', file=sys.stderr)
+
+        if self.rebuild:
+            os.makedirs(self.processed_dir, exist_ok=True)
+        else:
+            os.makedirs(self.processed_dir)
+
+        self.process()
+
+        path = osp.join(self.processed_dir, 'pre_transform.pt')
+        torch.save(_repr(self.pre_transform), path)
+        path = osp.join(self.processed_dir, 'pre_filter.pt')
+        torch.save(_repr(self.pre_filter), path)
+
+        if self.log and 'pytest' not in sys.modules:
+            print('Done!', file=sys.stderr)
 
 
 
