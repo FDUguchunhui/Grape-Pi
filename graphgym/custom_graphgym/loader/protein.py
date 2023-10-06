@@ -107,12 +107,12 @@ class ProteinDataset(InMemoryDataset):
                 negative_reference_list = f.read().splitlines()
 
         # x is feature tensor for nodes
-        # y is label tensor with y=1 if protein in the confident positive proteins, y=0 if in the confident negative proteins, -1 otherwise
         x, mapping, y = self._load_node_csv(path=protein_filename,
                                             numeric_columns=self.numeric_columns,
                                             label_column=self.label_column,
                                             positive_protein_reference=positive_reference_list,
                                             negative_protein_reference=negative_reference_list)
+
 
         # read protein-protein-interaction data (the last file from self.raw_file_names)
         edge_index, edge_attr = self._load_edge_csv(path=self.raw_paths['interaction'], mapping=mapping)
