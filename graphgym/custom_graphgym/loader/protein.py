@@ -137,7 +137,11 @@ class ProteinDataset(InMemoryDataset):
         data = split_transformer(data)
 
         # store mapping information for translate back protein integer ID back to string ID
-        data.mapping = mapping
+        # had better save mapping somewhere else
+        base_name = os.path.basename(protein_filename)
+        name_without_suffix = os.path.splitext(base_name)[0]
+        pd.DataFrame(mapping.items(), columns=['protein_id', 'integer_id']).to_csv(
+            os.path.join(self.raw_dir, name_without_suffix + '_mapping.csv'), index=False)
 
         return data
 
