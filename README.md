@@ -349,3 +349,18 @@ Traceback (mosusercall last):
   File "/home/user/miniconda3/envs/grape-pi/lib/python3.10/multiprocessing/resource_sharer.py", line 48, in __init__
 OSError: [Errno 24] Too many open files
 ```
+
+
+4.For Mac Apple M1/M2 user, you may encounter the following error when try Grape-Pi-SAGEConv model
+```angular2html
+Intel MKL FATAL ERROR: This system does not meet the minimum requirements for use of the Intel(R) Math Kernel Library.
+The processor must support the Intel(R) Supplemental Streaming SIMD Extensions 3 (Intel(R) SSSE3) instructions.
+The processor must support the Intel(R) Streaming SIMD Extensions 4.2 (Intel(R) SSE4.2) instructions.
+The processor must support the Intel(R) Advanced Vector Extensions (Intel(R) AVX) instructions.
+```
+
+Try to install the following package.
+```angular2html
+conda install -y clang_osx-arm64 clangxx_osx-arm64 gfortran_osx-arm64
+```
+Find more details, please refer to https://github.com/rusty1s/pytorch_scatter/issues/241
