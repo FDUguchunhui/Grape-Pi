@@ -5,6 +5,7 @@ metric_best: auc
 dataset: # need to delete file in processed folder if change args under dataset category
   name: protein
   dir: ../data/single
+  rebuild: true
   numeric_columns:
   - protein_probability
 #  - percent coverage
@@ -40,12 +41,12 @@ model:
   loss_fun: binary_cross_entropy_with_weight
   # the weight is calculated by num_negative_sample/num_positive_sample
 gnn:
-  layers_pre_mp: 2
-  layers_mp: 2
+  layers_pre_mp: 1
+  layers_mp: 1
   layers_post_mp: 1
   dim_inner: 10
   layer_type: sageconv # sageconv gcnconv
-  stage_type: stack #skipsum skipconcat
+  stage_type: skipsum #stack skipsum skipconcat
   batchnorm: false
   act: relu
   dropout: 0.0
@@ -55,7 +56,7 @@ optim:
   optimizer: adam
   base_lr: 0.001
   weight_decay: 5e-4
-  max_epoch: 100
+  max_epoch: 200
   # try not use schedule and check fluctuation of training curve
   scheduler: none
 

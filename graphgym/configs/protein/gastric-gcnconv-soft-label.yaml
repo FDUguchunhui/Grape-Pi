@@ -4,16 +4,12 @@ out_dir: results
 metric_best: auc
 dataset: # need to delete file in processed folder if change args under dataset category
   name: protein
-  dir: ../data/single-soft-label
+  dir: ../data/single
   numeric_columns:
   - protein_probability
-#  - percent coverage
-#  - tot indep spectraß
-#  - percent share of spectrum ids
-#  - mRNA(M)
-  label_column: protein_probability_soft_label
+  label_column: hard_label
   task: node
-  task_type: classification_binary_soft_label
+  task_type: classification
   transductive: true
   transform: none
   encoder: false
@@ -36,9 +32,9 @@ model:
   loss_fun: cross_entropy
   # the weight is calculated by num_negative_sample/num_positive_sample
 gnn:
-  layers_pre_mp: 2
+  layers_pre_mp: 1
   layers_mp: 1
-  layers_post_mp: 2
+  layers_post_mp: 1
   dim_inner: 10
   layer_type: gcnconv # sageconv gcnconv
   stage_type: skipsum  # stack skipsum skipconcat
