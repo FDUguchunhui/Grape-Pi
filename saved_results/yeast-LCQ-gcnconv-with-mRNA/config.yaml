@@ -8,7 +8,7 @@ custom_metrics: []
 dataset:
   cache_load: false
   cache_save: false
-  dir: ../data/single-soft-label
+  dir: ../data/yeast-LCQ
   edge_dim: 128
   edge_encoder: false
   edge_encoder_bn: true
@@ -21,7 +21,7 @@ dataset:
   encoder_dim: 128
   encoder_name: db
   format: PyG
-  label_column: protein_probability_soft_label
+  label_column: null
   label_table: none
   location: local
   name: protein
@@ -30,6 +30,8 @@ dataset:
   node_encoder_name: Atom
   numeric_columns:
   - protein_probability
+  - mRNA
+  rebuild: true
   remove_feature: false
   resample_disjoint: false
   resample_negative: false
@@ -40,9 +42,9 @@ dataset:
   - 0.2
   split_mode: random
   task: node
-  task_type: classification_binary_soft_label
+  task_type: classification
   to_undirected: false
-  transductive: false
+  transductive: true
   transform: none
   tu_simple: true
 devices: 1
@@ -55,11 +57,11 @@ gnn:
   batchnorm: false
   clear_feature: true
   dim_inner: 10
-  dropout: 0.0
+  dropout: 0.3
   head: protein
   keep_edge: 0.5
   l2norm: true
-  layer_type: sageconv
+  layer_type: gcnconv
   layers_mp: 1
   layers_post_mp: 1
   layers_pre_mp: 1
@@ -76,7 +78,7 @@ metric_best: auc
 model:
   edge_decoding: dot
   graph_pooling: add
-  loss_fun: cross_entropy
+  loss_fun: binary_cross_entropy_with_weight
   match_upper: true
   size_average: mean
   thresh: 0.5
@@ -86,7 +88,7 @@ num_workers: 8
 optim:
   base_lr: 0.001
   lr_decay: 0.1
-  max_epoch: 100
+  max_epoch: 300
   momentum: 0.9
   optimizer: adam
   scheduler: none
@@ -95,36 +97,37 @@ optim:
   - 60
   - 90
   weight_decay: 0.0005
-out_dir: results/gastric-graphsage-soft-label
+out_dir: results/yeast-gcnconv
 print: both
 round: 4
 run_dir: results
 seed: 0
 share:
   dim_in: -1
-  dim_out: 1
+  dim_out: 2
   num_splits: 1
 tensorboard_agg: true
 tensorboard_each_run: false
 train:
   auto_resume: false
-  batch_size: 128
+  batch_size: 1
   ckpt_clean: false
   ckpt_period: 10
   enable_ckpt: true
   epoch_resume: 0
   eval_period: 10
-  grape_pi: graphsage
+  grape_pi: gcnconv
   iter_per_epoch: 32
   loss_pos_weight: -1.0
   neighbor_sizes:
   - 20
+  - 15
   - 10
   - 5
   node_per_graph: 32
   radius: extend
   sample_node: false
-  sampler: neighbor
+  sampler: full_batch
   skip_train_eval: false
   walk_length: 4
 val:
