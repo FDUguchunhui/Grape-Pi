@@ -65,8 +65,7 @@ class ProteinBatchDataset(InMemoryDataset):
         else:
             df_protein = pd.read_csv(self.raw_paths[0], index_col=0)
         sample_ids = df_protein.columns.to_list()  # get ID of each samples
-        # create mapping from protein ID to integer ID for all proteins in the dataset
-        mapping = {index: i for i, index in enumerate(df_protein.index.unique())}
+
 
 
         # read interaction data file
@@ -74,9 +73,7 @@ class ProteinBatchDataset(InMemoryDataset):
             df_interaction = pd.read_csv(self.raw_paths[1], usecols=[0, 1, 2], sep='\t')
         else:
             df_interaction = pd.read_csv(self.raw_paths[1], usecols=[0, 1, 2])
-        # only keep interactions related to proteins that in the protein dataset (i.e. in mapping keys)
-        protein_data_acc = mapping.keys()
-        df_interaction = df_interaction[df_interaction.iloc[:, 0].isin(protein_data_acc) & df_interaction.iloc[:, 1].isin(protein_data_acc)]
+
 
         # read graph label file
         with open(self.raw_paths[2]) as f:
@@ -85,30 +82,37 @@ class ProteinBatchDataset(InMemoryDataset):
         # self.num_classes = len(set(graph_labels)) # get number of classes
         self.num_graphs = len(graph_labels) # get number of graphs
 
-        # Create a list with 60% 'train', 20% 'validation', and 20% 'mask'
-        labels = ['train'] * int(0.6 * self.num_graphs) + ['validation'] * int(0.2 * self.num_graphs) + ['mask'] * int(
-            0.2 * self.num_graphs)
-
-        # Shuffle the list
-        np.random.shuffle(labels)
-        # Convert to one-hot encoded format
-        one_hot_train = torch.tensor([1 if label == 'train' else 0 for label in labels], dtype=torch.int)
-        one_hot_validation = torch.tensor([1 if label == 'val' else 0 for label in labels], dtype=torch.int)
-        one_hot_mask = torch.tensor([1 if label == 'mask' else 0 for label in labels], dtype=torch.int)
+        # # Create a list with 60% 'train', 20% 'validation', and 20% 'mask'
+        # labels = ['train'] * int(0.6 * self.num_graphs) + ['validation'] * int(0.2 * self.num_graphs) + ['mask'] * int(
+        #     0.2 * self.num_graphs)
+        #
+        # # Shuffle the list
+        # np.random.shuffle(labels)
+        # # Convert to one-hot encoded format
+        # one_hot_train = torch.tensor([1 if label == 'train' else 0 for label in labels], dtype=torch.int)
+        # one_hot_validation = torch.tensor([1 if label == 'val' else 0 for label in labels], dtype=torch.int)
+        # one_hot_mask = torch.tensor([1 if label == 'mask' else 0 for label in labels], dtype=torch.int)
 
 
         data_list = []
 
         for idx, sample in enumerate(sample_ids):
             series_sample = df_protein[sample]
-            # series_sample.dropna(inplace=True)  # drop rows with NA values # there are bugs need to be fixed
+            series_sample = series_sample[series_sample != 0]  # drop proteins with 0 values
+            # create mapping from protein ID to integer ID for all proteins in the dataset
+            mapping = {index: i for i, index in enumerate(series_sample.index.unique())}
+            # only keep interactions related to proteins that in the protein dataset (i.e. in mapping keys)
+            protein_data_acc = mapping.keys()
+            sample_interaction = df_interaction[
+                df_interaction.iloc[:, 0].isin(protein_data_acc) & df_interaction.iloc[:, 1].isin(protein_data_acc)]
+
             x = torch.tensor(series_sample.values, dtype=torch.float).unsqueeze(1)
             # implement encoder later
             pass
 
             #   convert protein ID to integer ID
-            src = [mapping[index] for index in df_interaction.iloc[:, 0]]
-            dst = [mapping[index] for index in df_interaction.iloc[:, 1]]
+            src = [mapping[index] for index in sample_interaction.iloc[:, 0]]
+            dst = [mapping[index] for index in sample_interaction.iloc[:, 1]]
             edge_index = torch.tensor([src, dst])
 
             edge_attr = None
@@ -124,8 +128,7 @@ class ProteinBatchDataset(InMemoryDataset):
                 if edge_attr is not None:  # only create indirect edge_attr when edge_attr is not None
                     edge_attr = torch.hstack((edge_attr, edge_attr))
 
-            data = Data(x=x, edge_index=edge_index, edge_attr=edge_attr, y=graph_labels[idx],
-                        train_mask=one_hot_train[idx], val_mask=one_hot_validation[idx], test_mask=one_hot_mask[idx])
+            data = Data(x=x, edge_index=edge_index, edge_attr=edge_attr, y=graph_labels[idx])
             data_list.append(data)
 
 
