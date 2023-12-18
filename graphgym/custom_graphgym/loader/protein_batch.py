@@ -37,11 +37,12 @@ class ProteinBatchDataset(InMemoryDataset):
         pre_filter: the pre_filter function to apply to the dataset
     '''
 
-    def __init__(self, root, undirected=True, rebuild=False,
+    def __init__(self, root, encoder=None, undirected=True, rebuild=False,
                  transform=None, pre_transform=None, pre_filter=None):
 
         self.rebuild = rebuild
         self.undirected = undirected
+        self.encoder = encoder
         super().__init__(root, transform, pre_transform, pre_filter)
         self.data, self.slices = torch.load(self.processed_paths[0])
 
@@ -93,6 +94,7 @@ class ProteinBatchDataset(InMemoryDataset):
         # one_hot_validation = torch.tensor([1 if label == 'val' else 0 for label in labels], dtype=torch.int)
         # one_hot_mask = torch.tensor([1 if label == 'mask' else 0 for label in labels], dtype=torch.int)
 
+        # try implement encoder later!!
 
         data_list = []
 
