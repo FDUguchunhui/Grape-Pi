@@ -13,3 +13,4 @@ cfg.train.loss_pos_weight = 1.0
 cfg.train.grape_pi = 'graphsage'
 cfg.dataset.label_column = None
 cfg.dataset.rebuild = False
+cfg.dataset.remove_unlabeled_data = True

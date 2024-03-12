@@ -40,3 +40,5 @@ data/*
 !data/yeast-ORBI-mRNA/
 
 graphgym/configs/*_grid_*
+# any pdf files
+*.pdf

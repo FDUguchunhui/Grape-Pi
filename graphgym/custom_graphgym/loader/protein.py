@@ -28,7 +28,8 @@ def load_dataset_protein_batch(format, name, dataset_dir):
     if format == 'PyG':
         if name == 'protein':
             dataset_raw = ProteinDataset(dataset_dir, numeric_columns=cfg.dataset.numeric_columns,
-                                         label_column=cfg.dataset.label_column, rebuild=cfg.dataset.rebuild)
+                                         label_column=cfg.dataset.label_column, rebuild=cfg.dataset.rebuild,
+                                         remove_unlabeled_data=cfg.dataset.remove_unlabeled_data)
             return dataset_raw
 
 
@@ -46,11 +47,11 @@ class ProteinDataset(InMemoryDataset):
         pre_filter: the pre_filter function to apply to the dataset
     '''
 
-    def __init__(self, root, numeric_columns, label_column, remove_unlabelled_data=True, rebuild=False,
+    def __init__(self, root, numeric_columns, label_column, remove_unlabeled_data=True, rebuild=False,
                  transform=None, pre_transform=None, pre_filter=None):
 
         self.rebuild = rebuild
-        self.remove_unlabelled_data = remove_unlabelled_data
+        self.remove_unlabeled_data = remove_unlabeled_data
         if numeric_columns is None:
             raise ValueError('numeric_params is required for ProteinDataset')
         self.numeric_columns = numeric_columns
@@ -180,7 +181,7 @@ class ProteinDataset(InMemoryDataset):
                          (np.where(df.index.isin(negative_protein_reference), 0, pd.NA)))
 
         # filter out proteins without label if needed
-        if self.remove_unlabelled_data:
+        if self.remove_unlabeled_data:
             row_filter = ~pd.isnull(y)
             df = df[row_filter]
             y = y[row_filter]

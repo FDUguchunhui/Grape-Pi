@@ -8,7 +8,7 @@ dataset: # need to delete file in processed folder if change args under dataset 
   rebuild: true
   numeric_columns:
   - protein_probability
-#  - mRNA_TPM
+  - mRNA_TPM
   task: node
   task_type: classification
   transductive: false
