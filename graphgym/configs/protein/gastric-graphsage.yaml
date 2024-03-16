@@ -2,6 +2,7 @@
 num_workers: 8
 out_dir: results
 metric_best: auc
+seed: 1234
 dataset: # need to delete file in processed folder if change args under dataset category
   name: protein
   dir: ../data/single

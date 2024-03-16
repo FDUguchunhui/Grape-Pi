@@ -1,6 +1,7 @@
 import sys
-from typing import List
+from typing import List, Dict
 
+import h5py
 import numpy as np
 import pandas as pd
 import os.path as osp
@@ -47,15 +48,18 @@ class ProteinDataset(InMemoryDataset):
         pre_filter: the pre_filter function to apply to the dataset
     '''
 
-    def __init__(self, root, numeric_columns, label_column, remove_unlabeled_data=True, rebuild=False,
+    def __init__(self, root, numeric_columns, label_column,
+                 include_seq_embedding=False, remove_unlabeled_data=True, rebuild=False,
                  transform=None, pre_transform=None, pre_filter=None):
 
+        self.include_seq_embedding = include_seq_embedding
         self.rebuild = rebuild
         self.remove_unlabeled_data = remove_unlabeled_data
         if numeric_columns is None:
             raise ValueError('numeric_params is required for ProteinDataset')
         self.numeric_columns = numeric_columns
         self.label_column = label_column
+
         super().__init__(root, transform, pre_transform, pre_filter)
         self.data, self.slices = torch.load(self.processed_paths[0])
 
@@ -117,12 +121,6 @@ class ProteinDataset(InMemoryDataset):
 
         # read protein-protein-interaction data (the last file from self.raw_file_names)
         edge_index, edge_attr = self._load_edge_csv(path=self.raw_paths['interaction'], mapping=mapping)
-
-        # the mask used when calculating loss
-        # Since the original graphgym only accept y as a dim=2 for output
-        # add another variable to help distinguish those unlabelled nodes (y = 0 and loss_mask = 0)
-        # loss_mask = np.where(y == -1, 0, 1)
-        # y = torch.where(y == -1, 0, y)
 
         data = Data(x=x, edge_index=edge_index, split=1, edge_attr=edge_attr, y=y)
 
@@ -197,9 +195,21 @@ class ProteinDataset(InMemoryDataset):
         if encoders is not None:
             xs = [encoder(df[col]) for col, encoder in encoders.items()]
             x2 = torch.cat(xs, dim=-1).view(-1, 1)
-
-
             x = torch.hstack([x, x2])
+
+        # add protein sequence embedding
+        if  self.include_seq_embedding:
+            # create an empty tensor to store sequence embedding
+            seq_embedding = torch.zeros((len(mapping), 1024))
+            with h5py.File(self.raw_paths['embedding'], 'r') as file:
+                # iterate through the file to create
+                for accession, index  in mapping.items():
+                    # if the protein is not in the embedding file, skip
+                    # it will have an embedding vector of all zeros
+                    if accession not in file:
+                        continue
+                    seq_embedding[index] = torch.from_numpy(np.array(file[accession]))
+            x = torch.hstack([x, seq_embedding])
 
         # remove last dimension in y to make it a 1D tensor
         y = torch.tensor(y).view(-1).to(dtype=torch.float)
@@ -239,9 +249,12 @@ class ProteinDataset(InMemoryDataset):
         return edge_index, edge_attr
 
     @property
-    def raw_paths(self) -> List[str]:
+    def raw_paths(self) -> Dict[str, List[str]]:
         r"""The absolute filepaths that must be present in order to skip
         downloading."""
+        # our data folder have special structure the original raw_paths will only used for check if the files exist
+        raw_paths_dict = {}
+
         # generate necessary file paths
         raw_protein_dir = osp.join(self.root, 'raw/protein')
         file_names = [f for f in os.listdir(raw_protein_dir) if not f.startswith('.')]
@@ -249,6 +262,7 @@ class ProteinDataset(InMemoryDataset):
             raise Exception('no protein file detected!')
         else:
             protein_file_paths = [os.path.abspath(os.path.join(raw_protein_dir, file_name)) for file_name in file_names]
+        raw_paths_dict['protein'] = protein_file_paths
 
         raw_interaction_dir = osp.join(self.root, 'raw/interaction')
         file_names = [f for f in os.listdir(raw_interaction_dir) if not f.startswith('.')]
@@ -256,24 +270,23 @@ class ProteinDataset(InMemoryDataset):
             raise Exception('Wrong number of interaction file detected! Expecting exactly one file.')
         else:
             interaction_file_path = os.path.abspath(os.path.join(raw_interaction_dir, file_names[0]))
+        raw_paths_dict['interaction'] = interaction_file_path
 
-        return_raw_paths = protein_file_paths + [interaction_file_path]
+        if self.include_seq_embedding:
+            raw_embedding_dir = osp.join(self.root, 'raw/embedding')
+            file_names = [f for f in os.listdir(raw_embedding_dir) if not f.startswith('.')]
+            if len(file_names) != 1:
+                raise Exception('Wrong number of interaction file detected! Expecting exactly one file.')
+            else:
+                embedding_file_path = os.path.abspath(os.path.join(raw_embedding_dir, file_names[0]))
+            raw_paths_dict['embedding'] = embedding_file_path
 
-        if cfg.dataset.label_column is None:
+        if self.label_column is None:
             raw_reference_dir = osp.join(self.root, 'raw/reference')
             positive_reference_path = os.path.join(raw_reference_dir, 'positive.txt')
             negative_reference_path = os.path.join(raw_reference_dir, 'negative.txt')
-            return_raw_paths += [positive_reference_path, negative_reference_path]
-
-        else:
-            positive_reference_path = None
-            negative_reference_path = None
-
-        # our data folder have special structure the original raw_paths will only used for check if the files exist
-        raw_paths_dict = {'protein': protein_file_paths,
-                               'interaction': interaction_file_path,  # only one interaction file is allowed
-                               'positive_reference': positive_reference_path,
-                               'negative_reference': negative_reference_path}
+            raw_paths_dict['positive_reference'] = positive_reference_path
+            raw_paths_dict['negative_reference'] = negative_reference_path
 
         return raw_paths_dict
 
@@ -356,10 +369,21 @@ if __name__ == '__main__':
     parser.add_argument('-l', '--label-col', required=False, default=None,
                         help='the label column in the protein file used as label. If not provided, '
                              'a reference folder contains "positive.txt" and "negative.txt" is required in "raw" folder')
+    parser.add_argument('-i', '--include-seq-embedding', required=False, default=False, action='store_true',
+                        help='whether to include protein sequence embedding')
+    parser.add_argument('-u', '--remove-unlabeled-data', required=False, default=True, action='store_true',
+                        help='whether to remove unlabelled data')
+    parser.add_argument('-b', '--rebuild', required=False, default=False, action='store_true',
+                        help='whether to rebuild the dataset even if the processed file already exist')
 
     args = parser.parse_args()
 
-    protein_dataset = ProteinDataset(root=args.root, numeric_columns=args.numeric_columns, label_column=args.label_col)
+    protein_dataset = ProteinDataset(root=args.root,
+                                     numeric_columns=args.numeric_columns,
+                                     label_column=args.label_col,
+                                     include_seq_embedding=args.include_seq_embedding,
+                                     remove_unlabeled_data=args.remove_unlabeled_data,
+                                     rebuild=args.rebuild)
     # loader = DataLoader(protein_dataset)
     # for data in loader:
     #     data

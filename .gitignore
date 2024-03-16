@@ -43,3 +43,4 @@ graphgym/configs/*_grid_*
 # any pdf files
 *.pdf
 library/*
+saved_results/*
