@@ -22,7 +22,6 @@ from torch_geometric.graphgym.config import cfg
 from torch_geometric.data.dataset import files_exist
 
 from torch_geometric import  seed_everything
-seed_everything(1234)
 
 @register_loader('protein')
 def load_dataset_protein_batch(format, name, dataset_dir):
@@ -50,7 +49,9 @@ class ProteinDataset(InMemoryDataset):
 
     def __init__(self, root, numeric_columns, label_column,
                  include_seq_embedding=False, remove_unlabeled_data=True, rebuild=False,
-                 transform=None, pre_transform=None, pre_filter=None):
+                 transform=None, pre_transform=None, pre_filter=None, seed=1234):
+
+        seed_everything(seed)
 
         self.include_seq_embedding = include_seq_embedding
         self.rebuild = rebuild
