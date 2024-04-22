@@ -30,7 +30,9 @@ class CustomGraphGymDataModule(LightningDataModule):
             data, num_neighbors=cfg.train.neighbor_sizes[:cfg.gnn.layers_mp],
             input_nodes=data.train_mask,
             batch_size=cfg.train.batch_size, shuffle=True,
-            num_workers=cfg.num_workers, pin_memory=True))
+            num_workers=cfg.num_workers, pin_memory=True,
+            persistent_workers=True
+        ))
 
         # Inspired by https://github.com/pyg-team/pytorch_geometric/blob/684f17958fe8c949644c1fe1d6b2d5f70e313411/examples/reddit.py
         # subgraph_loader is used for eval validation and test performance in each epoch
@@ -38,7 +40,8 @@ class CustomGraphGymDataModule(LightningDataModule):
             copy.copy(data), num_neighbors=[-1],
             input_nodes=None,
             batch_size=cfg.train.batch_size, shuffle=False,
-            num_workers=cfg.num_workers, pin_memory=True))
+            num_workers=cfg.num_workers, pin_memory=True,
+            persistent_workers=True))
 
 @register_train("graphsage_train")
 def train(model: GraphGymModule, datamodule, logger: bool = True,

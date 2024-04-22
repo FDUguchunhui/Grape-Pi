@@ -24,12 +24,13 @@ from torch_geometric.data.dataset import files_exist
 from torch_geometric import  seed_everything
 
 @register_loader('protein')
-def load_dataset_protein_batch(format, name, dataset_dir):
+def load_dataset_protein_batch(format: object, name: object, dataset_dir: object) -> object:
     if format == 'PyG':
         if name == 'protein':
             dataset_raw = ProteinDataset(dataset_dir, numeric_columns=cfg.dataset.numeric_columns,
                                          label_column=cfg.dataset.label_column, rebuild=cfg.dataset.rebuild,
-                                         remove_unlabeled_data=cfg.dataset.remove_unlabeled_data)
+                                         remove_unlabeled_data=cfg.dataset.remove_unlabeled_data,
+                                         seed=1234)
             return dataset_raw
 
 
@@ -51,8 +52,6 @@ class ProteinDataset(InMemoryDataset):
                  include_seq_embedding=False, remove_unlabeled_data=True, rebuild=False,
                  transform=None, pre_transform=None, pre_filter=None, seed=1234):
 
-        seed_everything(seed)
-
         self.include_seq_embedding = include_seq_embedding
         self.rebuild = rebuild
         self.remove_unlabeled_data = remove_unlabeled_data
@@ -63,6 +62,8 @@ class ProteinDataset(InMemoryDataset):
 
         super().__init__(root, transform, pre_transform, pre_filter)
         self.data, self.slices = torch.load(self.processed_paths[0])
+
+        seed_everything(seed)
 
     @property
     @overrides
