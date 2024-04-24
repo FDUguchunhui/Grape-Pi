@@ -128,8 +128,7 @@ named **raw** inside the **raw** sub-folder, it should have three
 sub-folders: protein, interaction, and reference (optional).
 
 The  **protein** folder must contain only one csv or tsv file: 
-the first column must be protein ID and other columns
-contains additional protein features.
+the first column and second column must be protein ID and raw protein score, and other columns contains additional protein features.
 
 The **interaction** folder must contain only one csv or tsv file: the first 
 and second columns must be same type protein ID (e.g. Uniprot 

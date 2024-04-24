@@ -2,7 +2,8 @@ import glob
 import logging
 import os
 
-from torch_geometric.data import DataLoader, NeighborSampler
+from torch_geometric.data import DataLoader
+from torch_geometric.loader import NeighborLoader
 
 import graphgym.custom_graphgym # noqa, register custom modules
 import torch
@@ -33,7 +34,17 @@ if __name__ == '__main__':
                         help='The data file path.')
     parser.add_argument('--checkpoint', dest= 'checkpoint', type=str, default=None,
                         help='The checkpoint file path.')
-    parser.add_argument('-threshold', dest='threshold', type=float, default=0.9)
+    parser.add_argument('--threshold', dest='threshold', type=float, default=0.9,
+                        help='The threshold to determine the unconfident proteins based on raw protein probability.')
+    parser.add_argument('--num-promoted', dest='num_promoted', type=int, default=100,
+                        help='The number, N, of proteins to be promoted '
+                             'Top N Proteins will be selected based on the prediction probability from unconfident'
+                             'proteins.')
+    parser.add_argument('--output', dest='output', type=str, default=None,
+                        help='The output file path to store the promoted proteins. If not provided, the results '
+                             'will be save to the root directory of data file.')
+    parser.add_argument('opts', default=None, nargs=argparse.REMAINDER,
+                        help='See graphgym/config.py for remaining options.')
 
 
     # Load cmd line args
@@ -55,11 +66,12 @@ if __name__ == '__main__':
         datamodule = train_dict['graphsage_graphgym_datamodule']()
         model = train_dict['graphsage_create_model']()
     elif cfg.train.grape_pi == 'gcnconv':
-        datamodule = GraphGymDataModule()
-        model = train_dict['gcnconv_create_model']()
+    # raise NotImplementedError
+        raise NotImplementedError('Only "graphsage" is implemented yet')
+
 
     # Load all data without splitting validation and test set
-    dataset = protein_loader.ProteinBatchDataset(root=args.data_file, rebuild=True,
+    dataset = protein_loader.ProteinDataset(root=args.data_file, rebuild=True,
                                                  numeric_columns=cfg.dataset.numeric_columns,
                                                  label_column=cfg.dataset.label_column,
                                                  remove_unlabeled_data=False,
@@ -73,8 +85,8 @@ if __name__ == '__main__':
                                   pin_memory=True, persistent_workers=pw)
 
     elif cfg.train.sampler == "neighbor":
-        loader_train = NeighborSampler(
-            dataset[0], sizes=cfg.train.neighbor_sizes[:cfg.gnn.layers_mp],
+        dataloader = NeighborLoader(
+            dataset[0], num_neighbors=cfg.train.neighbor_sizes[:cfg.gnn.layers_mp],
             batch_size=cfg.train.batch_size, shuffle=True,
             num_workers=cfg.num_workers, pin_memory=True)
 
@@ -87,18 +99,16 @@ if __name__ == '__main__':
     # get the dictionary mapping from global node index to original protein accession
     # get the file in subdirectory "raw" of args.data and has "mapping" in the name
     # Construct the path to the "raw" subdirectory of args.data
-    raw_dir = os.path.join(args.data, 'raw')
+    raw_dir = os.path.join(args.data_file, 'raw')
     # Use glob to get all files in the directory that have "mapping" in the name
-    mapping = glob.glob(os.path.join(raw_dir, '*mapping*'))
+    mapping = pd.read_csv(glob.glob(os.path.join(raw_dir, '*mapping*'))[0])
     mapping = dict(zip(mapping['integer_id'], mapping['protein_id']))
 
     if args.checkpoint is not None:
         model.load_state_dict(torch.load(args.checkpoint)['state_dict'])
         # ../saved_results/gastric-graphsage/epoch=199-step=4800.ckpt'
-
     else:
-        # todo: train the model
-
+        raise NotImplementedError('Only loaded checkpoint is implemented yet')
 
     # prediction on the unconfident proteins
     model.eval()
@@ -126,20 +136,29 @@ if __name__ == '__main__':
     # read the original protein data
     # get the file in subdirectory "raw" of args.data and has "protein" in the name
     # Construct the path to the "raw/protein" subdirectory of args.data
-    raw_dir = os.path.join(args.data, 'raw/protein')
-    protein = glob.glob(os.path.join(raw_dir))
-    dat = pd.read_csv(protein[0])
+    raw_dir = os.path.join(args.data_file, 'raw/protein')
+    # list all files in the directory
+    dat = pd.read_csv(glob.glob(f'{raw_dir}/[!.]*')[0])
     # get the name of first column
     protein_id_col = dat.columns[0]
     # combine the test_proteins_df with the original protein data
-    all_proteins_df = all_proteins_df .merge(dat, left_on='accession', right_on='protein_id_col', how='inner')
+    all_proteins_df = all_proteins_df.merge(dat, left_on='accession', right_on=protein_id_col, how='inner')
 
-    all_proteins_df = all_proteins_df.loc[:, ['accession', 'gene_symbol', 'pred_prob', 'protein_probability', 'protein_probability_soft_label', "hard_label", 'mRNA_TPM''']]
-    all_proteins_df.columns = ['accession', 'gene_symbol', 'pred_prob', 'raw_prob', 'soft_label', 'hard_label', 'mRNA']
-    # filter only keep soft_label between 0.3 and 0.7
-    test_proteins_df = all_proteins_df[(all_proteins_df['soft_label'] > 0.3) & (all_proteins_df['soft_label'] < 0.7)]
 
-    confident_protein = test_proteins_df[(test_proteins_df['raw_prob'] >= 0.9)]['accession']
-    test_proteins_df = test_proteins_df[(test_proteins_df['raw_prob'] < args.threshold)]
+    # get the unconfident proteins and their prediction probability
+    all_proteins_df = all_proteins_df.loc[:, [protein_id_col, 'pred_prob', cfg.dataset.label_column]]
+    all_proteins_df.columns = ['accession', 'pred_prob','label']
+    # slice unlabeled protein if cfg.dataset.label_column is NaN
+    unlabeled_protein_df = all_proteins_df[pd.isnull(all_proteins_df['label'])]
+
+    unconfident_protein = unlabeled_protein_df[(unlabeled_protein_df.iloc[:, 1] < args.threshold)]
+
+    # get the top N proteins to be promoted
+    promoted_proteins = unconfident_protein.sort_values(by='pred_prob', ascending=False).head(args.num_promoted)
+    if args.output is None:
+        output_dir = os.path.join(args.data_file, 'promoted_proteins.csv')
+        promoted_proteins.to_csv(output_dir, index=False)
+    else:
+        promoted_proteins.to_csv(args.output, index=False)
 
 

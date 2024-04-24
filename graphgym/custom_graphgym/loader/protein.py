@@ -114,7 +114,7 @@ class ProteinDataset(InMemoryDataset):
                 negative_reference_list = f.read().splitlines()
 
         # x is feature tensor for nodes
-        x, mapping, y = self._load_node_csv(path=protein_filename,
+        x, mapping, y, unlabeled_mask = self._load_node_csv(path=protein_filename,
                                             numeric_columns=self.numeric_columns,
                                             label_column=self.label_column,
                                             positive_protein_reference=positive_reference_list,
@@ -124,7 +124,7 @@ class ProteinDataset(InMemoryDataset):
         # read protein-protein-interaction data (the last file from self.raw_file_names)
         edge_index, edge_attr = self._load_edge_csv(path=self.raw_paths['interaction'], mapping=mapping)
 
-        data = Data(x=x, edge_index=edge_index, split=1, edge_attr=edge_attr, y=y)
+        data = Data(x=x, edge_index=edge_index, split=1, edge_attr=edge_attr, y=y, unlabeled_mask=unlabeled_mask)
 
         # calculate node degree
         # deg = degree(data.edge_index[0], data.num_nodes).reshape(-1, 1)
@@ -180,12 +180,24 @@ class ProteinDataset(InMemoryDataset):
             y = np.where(df.index.isin(positive_protein_reference), 1,
                          (np.where(df.index.isin(negative_protein_reference), 0, pd.NA)))
 
+        # if choose to keep unlabelled data, create a mask for unlabeled data
+        # make the unlabeled data to have label 0. This is because the code in
+        # package torch_geometric only accept label in range 0 to num_classes - 1
+        unlabeled_mask = None
         # filter out proteins without label if needed
         if self.remove_unlabeled_data:
             row_filter = ~pd.isnull(y)
             df = df[row_filter]
             y = y[row_filter]
-            y = y.astype(float)
+
+        else:
+            # create a mask for proteins without label
+            unlabeled_mask = pd.isnull(y)
+            # fill the unlabeled proteins with 0
+            y = np.nan_to_num(y, nan=0)
+
+        # after no NaN in y, convert y to integer
+        y = y.astype(int)
 
 
         # create mapping from protein ID to integer ID
@@ -214,9 +226,10 @@ class ProteinDataset(InMemoryDataset):
             x = torch.hstack([x, seq_embedding])
 
         # remove last dimension in y to make it a 1D tensor
-        y = torch.tensor(y).view(-1).to(dtype=torch.float)
+        y = torch.tensor(y).view(-1).to(dtype=torch.int)
+        unlabeled_mask = torch.tensor(unlabeled_mask, dtype=torch.int).view(-1)
 
-        return x, mapping, y
+        return x, mapping, y, unlabeled_mask
 
     def _load_edge_csv(self, path: str, mapping: dict,
                        numeric_cols: list = None, encoders: dict = None, undirected: bool = True, **kwargs):
