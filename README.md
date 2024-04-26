@@ -1,10 +1,10 @@
-# Graph neural network using Protein-protein-interaction for Enhancing Protein Identification (Grape-Pi)
+# Welcome to GrapePi: Graph neural network using Protein-protein-interaction for Enhancing Protein Identification
 
 <p align="center">
   <img src="figures/grape-pie.png" />
 </p>
 
-## Introduction
+# Introduction
 
 GRAph-neural-network using Protein-protein-interaction for Enhancing Protein Identification (Grape-Pi) is a deep
 learning framework for predict protein existence based on
@@ -27,7 +27,7 @@ explored the design space and discussed caveats for training such a
 model for the best performance.
 
 
-## installation
+# installation
 **GrapePi** is built on top of the **PyTorch Geometric**, a geometric 
 deep learning extension library for PyTorch. 
 It consists of various methods for deep learning on graphs and
@@ -40,36 +40,55 @@ large number of common benchmark datasets (based on simple interfaces to create 
 the [GraphGym](https://pytorch-geometric.readthedocs.io/en/latest/advanced/graphgym.html) experiment manager, and
 helpful transforms, both for learning on arbitrary graphs as well as on 3D meshes or point clouds.
 
+## Create a virtual environment
 It is highly recommended to use a virtual environment to install the required packages for Grape-Pi.
 Please refer to https://conda.io/projects/conda/en/latest/user-guide/install/index.html for how to install a miniconda
 or anaconda in your local machine.
 
 To create a virtual environment, for example, if using conda
-
 ```angular2html
 conda create -n [Name-of-the-Virtual-Environment] python=3.10
 conda activate [Name-of-the-Virtual-Environment]
 ```
-
 Replace `[Name-of-the-Virtual-Environment]` with your preferred name.
 
-The original torch-geometry support python 3.7-3.11 with pytorch 1.3.0-2.0.0. For illustration
-purpose, we use python=3.10 and pytorch=2.0.0 here.
+
+##  Get a copy of the project
+Clone a copy of Grape-Pi from source and navigate to the root directory of the download folder. See [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) for more details about how to make a local copy of project.
+
+```angular2html
+git clone https://github.com/FDUguchunhui/GrapePi.git
+cd GrapePi
+```
+
+## Install dependencies
+The dependencies for Grape-Pi project are listed in the `requirements.txt` file. To install the dependencies, run
+```angular2html
+cd GrapePi # navigate to the root directory of the project
+pip install -r requirements.txt
+```
+
+`pyproject.toml` is a new standard file for declare dependencies and build system information for Python projects. You can also use poetry to install the dependencies. 
+See more at [Poetry](https://python-poetry.org/docs/basic-usage/)
+```azure
+cd GrapePi # navigate to the root directory of the project
+conda install poetry
+poetry install --no-root
+```
+
+Some package may not be installed correctly, you may need to install them manually, including torch, torch_geometric,
+and others packages that torch and torch_geometric depends. Those packages depend on the version of python and 
+pytorch, architecture of the system, and operating system. Follow the instruction below to install the required 
+packages based on your environment.
+
+The original torch-geometry support python 3.7-3.11 with pytorch 1.3.0-2.0.0. For illustration purpose, we use python=3.10 and pytorch=2.0.0 here.
 For using and debugging with other python and pytorch version, please refer
 to https://github.com/pyg-team/pytorch_geometric for details
 
-In case you have accidentally installed an official version of
-torch-geometric, run
-
-```angular2html
-pip uninstall torch-geometric
-pip uninstall torch-geometric  # run this command twice to make sure it is completely removed
-```
 
 ### Install pytorch
 
 For mac
-
 ```angular2html
 conda install pytorch==2.0.0 torchvision==0.15.0 torchaudio==2.0.0 -c pytorch
 ```
@@ -85,37 +104,52 @@ conda install pytorch==2.0.0 torchvision==0.15.0 torchaudio==2.0.0 pytorch-cuda=
 conda install pytorch==2.0.0 torchvision==0.15.0 torchaudio==2.0.0 cpuonly -c pytorch
 ```
 
-### Follow the installation instructions to install additional libraries to using Grape-Pi:
+Follow the installation instructions to install additional libraries to using Grape-Pi:
 
-torch-scatter, torch-sparse, torch-cluster and torch-spline-conv (if you haven't already):
-
+torch-scatter, torch-sparse, torch-cluster and torch-spline-conv (if you haven't already). Replace {CUDA} with your 
+specific CUDA version or cpu.
 ```angular2html
-pip install pyg_lib torch_scatter torch_sparse torch_cluster torch_spline_conv -f https://data.pyg.org/whl/torch-2.0.0+${CUDA}.html
+pip install torch_scatter torch_sparse torch_cluster torch_spline_conv -f https://data.pyg.org/whl/torch-2.0.0+${CUDA}.html
 ```
 
 If you are using pytorch=2.0.0 cpu only version, run
-
 ```angular2html
-pip install pyg_lib torch_scatter torch_sparse torch_cluster torch_spline_conv -f https://data.pyg.org/whl/torch-2.0.0+cpu.html
-```
-
-### Clone a copy of Grape-Pi from source and navigate to the root directory of the download folder. See [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) for more details about how to make a local copy of project.
-
-### Quick start
-```angular2html
-python main.py --config configs/protein/protein-yeast-graphsage.yaml
+pip install torch_scatter torch_sparse torch_cluster torch_spline_conv -f https://data.pyg.org/whl/torch-2.0.0+cpu.html
 ```
 
 
 
+## Quick start
 
+### Use pre-trained model to make prediction
 ```angular2html
-git clone https://github.com/FDUguchunhui/GrapePi.git
-cd GrapePi
+python grape_pi.py ---cfg data/gastric_all_data/gastric-graphsage.yaml --data data/gastric_all_data --checkpoint 
+saved_results/gastric-graphsage/epoch=199-step=4800.ckpt --threshold 0.9 --num-promoted 100
 ```
+The above command will load the trained model from the checkpoint file and data from the given path, make prediction on the unconfident proteins, 
+which are defined as proteins with raw protein probability below 0.9 and without any groud-truth label, and promote 
+100 proteins with the highest prediction protein probability. The prediction result "promoted_protein.csv" will be 
+saved in the root directory of the provided data path.
 
-## Data preparation
-The Graph-Pi training framework was based on graphgym. Please check `Design Space for Graph Neural Networks
+To use this trained model for your own data, you only need to replace the `data` path with your own data path.
+
+For the best performance, it is recommended to train a new model with your own data.
+You can use the following command to train a new model with your own data. It will use "sageConv" as the 
+message-passing layer and hyperparameters that have been optimized for this task.
+```angular2html
+### Train a new model with given hyper-parameters options
+```angular2html
+python graphgym.py --cfg data/gastric_all_data/gastric-graphsage.yaml
+```
+See more details about the format of the `protein` and `protein interaction` data requirement. 
+
+## GrapePi training framework
+![GrapePi](figures/flowchart.jpg)
+The complete GrapePi training framework consists of three main components: data preparation, hyperparameter training, 
+and post-training analysis.
+
+### Data preparation
+The GraphPi training framework was based on graphgym. Please check `Design Space for Graph Neural Networks
 https://arxiv.org/abs/2011.08843` for details.
 
 The GraphPi framework features a built-in module for easily load raw 
@@ -124,32 +158,36 @@ format that can be used for training model. The only things needed is to
 provide a path to the dataset folder.
 
 The dataset folder structure should look like this, with a sub-folder 
-named **raw** inside the **raw** sub-folder, it should have three
+named `raw` inside the `raw` sub-folder, it should have three
 sub-folders: protein, interaction, and reference (optional).
 
-The  **protein** folder must contain only one csv or tsv file: 
-the first column and second column must be protein ID and raw protein score, and other columns contains additional protein features.
+The  `protein`  folder must contain exact only one **csv** file: 
+the first column and second column must be protein ID and raw protein probability, and other columns can contain additional protein features.
 
-The **interaction** folder must contain only one csv or tsv file: the first 
+The `interaction` folder must contain exact only one **csv** file: the first 
 and second columns must be same type protein ID (e.g. Uniprot 
 accession number or gene symbol) refer to the two protein interactors,
-other columns can be additional features for the interaction relationship.
+other columns can be additional features for the interaction relationship. The ID system used should be matched with 
+the protein ID in the `protein` folder.
 
-The reference folder is optional. It will be used to create positive and
-negative labels for the final processed dataset. If provided, it  must
-contain two txt files. **positive.txt** and **negative.txt**. Those are 
-two simple txt file with a protein ID in each line. The protein in 
-**positive.txt** will be used to create positive label in the final processed 
-dataset. The protein in **negative.txt** will be used to create negative
+You have two options to provide ground-truth labels for the protein existence in the sample. First, you can provide 
+the ground-true label in the `protein` csv file, you will need to specify the column name of the ground-true label 
+through `dataset.label_column` in config file (more details later). Second, you can provide a reference folder, which contains two txt files:`positive. txt` and 
+`negative.txt`. The reference folder will be ignored if `dataset.label_column` is specified in the config file. 
+
+If you decide to use`Reference` folder to create **ground-truth** label, it must contain two txt files. `positive. txt` and `negative. txt`. Those are two simple txt 
+file with a protein ID in each line. The protein in 
+`positive.txt` will be used to create positive label in the final processed 
+dataset. The protein in `negative.txt` will be used to create negative
 label in the final processed dataset. Protein that is not found in either
-**positive.txt** and **negative.txt** will be treated as unlabelled.
-Only labelled proteins will be used for calculating loss and then 
+`positive.txt` and `negative.txt` will be treated as unlabeled.
+Only labeled proteins will be used for model training, loss calculation, and then 
 backward propagation to update model.
 
-You could find such an example of such dataset `Graph-Pi/graphgym/data/yeast`
+You could find such an example using `reference` to create protein existence label, in dataset 
+`Graph-Pi/graphgym/data/yeast`
 
-## Set up model configuration
-
+### Set up model configuration
 Before you can train a model based on the provided data, a configuration file is needed to for some key information:
 where to find the data, how to parse the data, what features to use, model structure, what loss function to use, how to
 update model weights, etc.
@@ -226,7 +264,7 @@ rebuild processed data from modified raw files.
 The instruction above only aim to provide a start point for user to check how we did our experiment.
 Please refer to https://github.com/snap-stanford/GraphGym for more details about how to config a batch experiment.
 
-## Set up batch experiment
+### Set up batch experiment
 
 Batch experiment allow user to run multiple experiments with different hyper-parameters in sequential with or without
 parallel. To run a batch experiment, you need to provide three configuration files. The first configuration file is the

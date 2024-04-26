@@ -12,14 +12,13 @@ from torch_geometric.graphgym.config import (
     set_out_dir,
     set_run_dir,
 )
-from torch_geometric.graphgym.logger import set_printing
-from torch_geometric.graphgym.model_builder import create_model
+from torch_geometric.graphgym.register import train_dict
 from torch_geometric.graphgym.train import GraphGymDataModule, train
 from torch_geometric.graphgym.utils.agg_runs import agg_runs
 from torch_geometric.graphgym.utils.comp_budget import params_count
 from torch_geometric.graphgym.utils.device import auto_select_device
-from torch_geometric.graphgym import optim
-from graphgym import logger
+
+import logger
 
 if __name__ == '__main__':
     # Load cmd line args
@@ -33,28 +32,30 @@ if __name__ == '__main__':
     # Repeat for different random seeds
     for i in range(args.repeat):
         set_run_dir(cfg.out_dir)
-        set_printing()
+        logger.set_printing()
         # Set configurations for each run
         cfg.seed = cfg.seed + 1
         seed_everything(cfg.seed)
         auto_select_device()
         # Set machine learning pipeline
-        datamodule = GraphGymDataModule()
-        model = create_model()
+
+        model, datamodule = None, None
+        # use the right customized datamodule and graphgymmodule
+        if cfg.train.grape_pi == 'graphsage':
+            datamodule = train_dict['graphsage_graphgym_datamodule']()
+            model = train_dict['graphsage_create_model']()
+            train = train_dict['graphsage_train']
+        elif cfg.train.grape_pi == 'gcnconv':
+            datamodule = GraphGymDataModule()
+            model = train_dict['gcnconv_create_model']()
+            train = train_dict['gcnconv_train']
+
         # Print model info
         logging.info(model)
         logging.info(cfg)
         cfg.params = params_count(model)
         logging.info('Num parameters: %s', cfg.params)
-
-        loggers = logger.create_logger()
-        optimizer = optim.create_optimizer(model.model.parameters(), cfg.optim)
-        scheduler = optim.create_scheduler(optimizer, cfg.optim)
-        custom_graphgym.train.graphsage.train_protein(loggers=loggers,
-                                                    loaders=datamodule.loaders,
-                                                    model=model,
-                                                    optimizer=optimizer,
-                                                    scheduler=scheduler)
+        train(model, datamodule, logger=True)
 
     # Aggregate results from different seeds
     agg_runs(cfg.out_dir, cfg.metric_best)

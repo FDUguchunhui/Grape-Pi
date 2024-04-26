@@ -13,11 +13,25 @@ from overrides import overrides
 import warnings
 from torch_geometric.data import Data
 from torch_geometric.data import InMemoryDataset
+from torch_geometric.graphgym.register import register_loader
 import torch_geometric.transforms as T
+from torch_geometric.utils import degree
 from typing import Any, Callable, List, Optional, Tuple, Union
 from torch_geometric.data.dataset import to_list, _repr
+from torch_geometric.graphgym.config import cfg
 from torch_geometric.data.dataset import files_exist
+
 from torch_geometric import  seed_everything
+
+@register_loader('protein')
+def load_dataset_protein_batch(format: object, name: object, dataset_dir: object) -> object:
+    if format == 'PyG':
+        if name == 'protein':
+            dataset_raw = ProteinDataset(dataset_dir, numeric_columns=cfg.dataset.numeric_columns,
+                                         label_column=cfg.dataset.label_column, rebuild=cfg.dataset.rebuild,
+                                         remove_unlabeled_data=cfg.dataset.remove_unlabeled_data,
+                                         seed=1234)
+            return dataset_raw
 
 
 class ProteinDataset(InMemoryDataset):
@@ -36,8 +50,7 @@ class ProteinDataset(InMemoryDataset):
 
     def __init__(self, root, numeric_columns, label_column,
                  include_seq_embedding=False, remove_unlabeled_data=True, rebuild=False,
-                 transform=None, pre_transform=None, pre_filter=None,
-                 num_val=0.2, num_test=0.1, seed=1234):
+                 transform=None, pre_transform=None, pre_filter=None, seed=1234):
 
         self.include_seq_embedding = include_seq_embedding
         self.rebuild = rebuild
@@ -46,8 +59,6 @@ class ProteinDataset(InMemoryDataset):
             raise ValueError('numeric_params is required for ProteinDataset')
         self.numeric_columns = numeric_columns
         self.label_column = label_column
-        self.num_val = num_val
-        self.num_test = num_test
 
         super().__init__(root, transform, pre_transform, pre_filter)
         self.data, self.slices = torch.load(self.processed_paths[0])
@@ -122,8 +133,8 @@ class ProteinDataset(InMemoryDataset):
         # split data into train, val, and test set
         # rename the attributes to match name convention in GraphGym
         split_transformer = T.RandomNodeSplit(split='train_rest', num_splits=1,
-                                              num_val=self.num_val,
-                                              num_test=self.num_test)
+                                              num_val=cfg.dataset.split[1],
+                                              num_test=cfg.dataset.split[2])
         data = split_transformer(data)
 
         # store mapping information for translate back protein integer ID back to string ID
@@ -184,9 +195,11 @@ class ProteinDataset(InMemoryDataset):
             unlabeled_mask = pd.isnull(y)
             # fill the unlabeled proteins with 0
             y = np.nan_to_num(y, nan=0)
+            unlabeled_mask = torch.tensor(unlabeled_mask, dtype=torch.int).view(-1)
 
         # after no NaN in y, convert y to integer
         y = y.astype(int)
+
 
         # create mapping from protein ID to integer ID
         # the mapping dict is needed to convert results back to protein ID
@@ -215,7 +228,6 @@ class ProteinDataset(InMemoryDataset):
 
         # remove last dimension in y to make it a 1D tensor
         y = torch.tensor(y).view(-1).to(dtype=torch.int)
-        unlabeled_mask = torch.tensor(unlabeled_mask, dtype=torch.int).view(-1)
 
         return x, mapping, y, unlabeled_mask
 
@@ -328,6 +340,7 @@ class ProteinDataset(InMemoryDataset):
                 "the pre-processed version of this dataset. If you want to "
                 "make use of another pre-fitering technique, make sure to "
                 "delete '{self.processed_dir}' first")
+
 
 
         if files_exist(self.processed_paths) and not self.rebuild:  # pragma: no cover

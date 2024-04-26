@@ -4,7 +4,7 @@ out_dir: results
 metric_best: auc
 dataset: # need to delete file in processed folder if change args under dataset category
   name: protein
-  dir: ../data/yeast-ORBI
+  dir: data/yeast-ORBI
   rebuild: true
   numeric_columns:
   - protein_probability

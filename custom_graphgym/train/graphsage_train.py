@@ -8,10 +8,11 @@ from torch_geometric.graphgym.checkpoint import get_ckpt_dir
 from torch_geometric.graphgym.config import cfg
 from torch_geometric.graphgym.imports import pl
 from torch_geometric.graphgym.loader import create_dataset
-from graphgym.logger import LoggerCallback
 from torch_geometric.graphgym.model_builder import GraphGymModule
 from torch_geometric.graphgym.register import register_train
 from torch_geometric.loader import NeighborLoader
+
+from logger import LoggerCallback
 
 import copy
 

@@ -5,25 +5,21 @@ import os
 from torch_geometric.data import DataLoader
 from torch_geometric.loader import NeighborLoader
 
-import graphgym.custom_graphgym # noqa, register custom modules
+import custom_graphgym  # noqa, register custom modules
 import torch
 from torch_geometric import seed_everything
 import argparse
 from torch_geometric.graphgym.config import (
     cfg,
-    dump_cfg,
     load_cfg,
-    set_out_dir,
-    set_run_dir,
 )
 from torch_geometric.graphgym.register import train_dict
-from torch_geometric.graphgym.train import GraphGymDataModule, train
 from torch_geometric.graphgym.utils.comp_budget import params_count
 from torch_geometric.graphgym.utils.device import auto_select_device
 
-from graphgym import logger
+import logger
 import pandas as pd
-from src import protein_loader
+from grape_pi import protein_loader
 
 if __name__ == '__main__':
 

@@ -1,17 +1,16 @@
-# The recommended basic settings for Grape-Pi
+# The recommended basic settings for GNN
 num_workers: 8
 out_dir: results
 metric_best: auc
 dataset: # need to delete file in processed folder if change args under dataset category
   name: protein
-  dir: ../data/single
+  dir: data/yeast-LCQ
   rebuild: true
   numeric_columns:
   - protein_probability
-  - mRNA_TPM
   task: node
   task_type: classification
-  transductive: true
+  transductive: false
   transform: none
   encoder: false
   node_encoder: false
@@ -21,12 +20,16 @@ share:
   dim_in: -1
   dim_out: 2  # dim_out 2 is for binary classification
 train:
-  grape_pi: gcnconv
+  grape_pi: graphsage
   loss_pos_weight: -1.0
-  batch_size: 1
+  batch_size: 128
   ckpt_period: 10
   ckpt_clean: false
-  sampler: full_batch
+  sampler: neighbor
+  neighbor_sizes: # sample 20 from 1-order neighbor and so on
+  - 20
+  - 10
+  - 5
   epoch_resume: 0
 model:
   type: gnn
@@ -37,18 +40,18 @@ gnn:
   layers_mp: 1
   layers_post_mp: 1
   dim_inner: 10
-  layer_type: gcnconv # sageconv gcnconv
-  stage_type: skipsum  # stack skipsum skipconcat
-  batchnorm: false # batchnorm make things worse
+  layer_type: sageconv # sageconv gcnconv
+  stage_type: skipsum # stack skipsum skipconcat
+  batchnorm: false
   act: relu
-  dropout: 0.3
+  dropout: 0.0
   normalize_adj: false
   head: protein
 optim:
   optimizer: adam
   base_lr: 0.001
   weight_decay: 5e-4
-  max_epoch: 300
+  max_epoch: 200
   # try not use schedule and check fluctuation of training curve
   scheduler: none
 

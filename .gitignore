@@ -39,8 +39,9 @@ data/*
 !data/yeast-ORBI/
 !data/yeast-ORBI-mRNA/
 
-graphgym/configs/*_grid_*
+configs/*_grid_*
 # any pdf files
 *.pdf
 library/*
 saved_results/*
+results/*
