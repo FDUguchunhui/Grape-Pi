@@ -30,7 +30,7 @@ def load_dataset_protein_batch(format: object, name: object, dataset_dir: object
             dataset_raw = ProteinDataset(dataset_dir, numeric_columns=cfg.dataset.numeric_columns,
                                          label_column=cfg.dataset.label_column, rebuild=cfg.dataset.rebuild,
                                          remove_unlabeled_data=cfg.dataset.remove_unlabeled_data,
-                                         seed=1234)
+                                         num_val=cfg.dataset.split[1], num_test=cfg.dataset.split[2])
             return dataset_raw
 
 
@@ -50,7 +50,8 @@ class ProteinDataset(InMemoryDataset):
 
     def __init__(self, root, numeric_columns, label_column,
                  include_seq_embedding=False, remove_unlabeled_data=True, rebuild=False,
-                 transform=None, pre_transform=None, pre_filter=None, seed=1234):
+                 transform=None, pre_transform=None, pre_filter=None,
+                 num_val=0.2, num_test=0.1):
 
         self.include_seq_embedding = include_seq_embedding
         self.rebuild = rebuild
@@ -59,11 +60,13 @@ class ProteinDataset(InMemoryDataset):
             raise ValueError('numeric_params is required for ProteinDataset')
         self.numeric_columns = numeric_columns
         self.label_column = label_column
+        self.num_val = num_val
+        self.num_test = num_test
 
         super().__init__(root, transform, pre_transform, pre_filter)
         self.data, self.slices = torch.load(self.processed_paths[0])
 
-        seed_everything(seed)
+        # seed_everything(seed)
 
     @property
     @overrides
@@ -133,8 +136,8 @@ class ProteinDataset(InMemoryDataset):
         # split data into train, val, and test set
         # rename the attributes to match name convention in GraphGym
         split_transformer = T.RandomNodeSplit(split='train_rest', num_splits=1,
-                                              num_val=cfg.dataset.split[1],
-                                              num_test=cfg.dataset.split[2])
+                                              num_val=self.num_val,
+                                              num_test=self.num_test)
         data = split_transformer(data)
 
         # store mapping information for translate back protein integer ID back to string ID

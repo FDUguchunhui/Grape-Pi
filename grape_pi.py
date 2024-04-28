@@ -1,6 +1,7 @@
 import glob
 import logging
 import os
+import subprocess
 
 from torch_geometric.data import DataLoader
 from torch_geometric.loader import NeighborLoader
@@ -19,7 +20,7 @@ from torch_geometric.graphgym.utils.device import auto_select_device
 
 import logger
 import pandas as pd
-from grape_pi import protein_loader
+from custom_graphgym.loader.protein import ProteinDataset
 
 if __name__ == '__main__':
 
@@ -67,11 +68,11 @@ if __name__ == '__main__':
 
 
     # Load all data without splitting validation and test set
-    dataset = protein_loader.ProteinDataset(root=args.data_file, rebuild=True,
+    dataset = ProteinDataset(root=args.data_file, rebuild=True,
                                                  numeric_columns=cfg.dataset.numeric_columns,
                                                  label_column=cfg.dataset.label_column,
                                                  remove_unlabeled_data=False,
-                                                 num_val=cfg.dataset.split[1], num_test=cfg.dataset.split[2])
+                                                 num_val=0, num_test=0)
 
 
     pw = cfg.num_workers > 0
@@ -104,7 +105,18 @@ if __name__ == '__main__':
         model.load_state_dict(torch.load(args.checkpoint)['state_dict'])
         # ../saved_results/gastric-graphsage/epoch=199-step=4800.ckpt'
     else:
-        raise NotImplementedError('Only loaded checkpoint is implemented yet')
+        # if no checkpoint is provided, retrain the model
+        # run the graphgym.py script to train the model with provided configuration
+        # create a directory to store the results that using the same as configuration file
+        output_path = os.path.join('results', args.cfg_file.split('/')[-1].replace('.yaml', ''))
+        os.makedirs(output_path, exist_ok=True)
+        subprocess.run(['python', 'graphgym.py', '--cfg', args.cfg_file, 'train.ckpt_clean', 'True', 'out_dir', output_path])
+
+        # load the last checkpoint
+        # the path is output_path/0/ckpt/*.ckpt
+        checkpoint_dir = os.path.join(output_path,  cfg.seed, 'ckpt')
+        checkpoint_file = glob.glob(os.path.join(checkpoint_dir, '*.ckpt'))[0]
+        model.load_state_dict(torch.load(checkpoint_file)['state_dict'])
 
     # prediction on the unconfident proteins
     model.eval()
@@ -156,5 +168,8 @@ if __name__ == '__main__':
         promoted_proteins.to_csv(output_dir, index=False)
     else:
         promoted_proteins.to_csv(args.output, index=False)
+
+    # output message that the process completed and promoted proteins are saved
+    print(f'Top {args.num_promoted} proteins are saved in {args.output}')
 
 
