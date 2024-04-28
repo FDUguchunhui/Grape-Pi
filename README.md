@@ -123,15 +123,24 @@ pip install torch_scatter torch_sparse torch_cluster torch_spline_conv -f https:
 
 ### Use pre-trained model to make prediction
 ```angular2html
-python grape_pi.py ---cfg data/gastric_all_data/gastric-graphsage.yaml --data data/gastric_all_data --checkpoint 
+python grape_pi.py ---cfg data/gastric_all_data/gastric-graphsage.yaml --checkpoint 
 saved_results/gastric-graphsage/epoch=199-step=4800.ckpt --threshold 0.9 --num-promoted 100
 ```
-The above command will load the trained model from the checkpoint file and data from the given path, make prediction on the unconfident proteins, 
+The above command will initialize the model that is defined in provided configuration files and  load the trained model from the checkpoint 
+file, make prediction on the unconfident proteins, 
 which are defined as proteins with raw protein probability below 0.9 and without any groud-truth label, and promote 
 100 proteins with the highest prediction protein probability. The prediction result "promoted_protein.csv" will be 
-saved in the root directory of the provided data path.
+saved in the root directory of the provided data path. You can change the **dataset.dir** in the configuration file 
+to the path of your own data to make prediction on your own data. 
 
-To use this trained model for your own data, you only need to replace the `data` path with your own data path.
+You can also overwrite data path by providing 
+additional argument in key and value format sequentially after the command. For example,
+```angular2html
+python grape_pi.py ---cfg data/gastric_all_data/gastric-graphsage.yaml --checkpoint 
+saved_results/gastric-graphsage/epoch=199-step=4800.ckpt --threshold 0.9 --num-promoted 100 dataset.dir {YOUR_DATA_PATH}
+```
+Replace `{YOUR_DATA_PATH}` with the path of your own data. Using this approach you can override any key-value pair 
+related to model training in configuration file without changing the configuration file.
 
 For the best performance, it is recommended to train a new model with your own data. To train a new model, you just 
 need to run the same command without the `--checkpoint` argument.
@@ -143,7 +152,7 @@ configuration file name, the ckpt file will be saved in this subfolder under "{r
 {random_seed} is the random seed used for this training. 
 ```angular2html
 ### Train a new model with given hyper-parameters options
-python grape_pi.py ---cfg data/gastric_all_data/gastric-graphsage.yaml --data data/gastric_all_data --threshold 0.9 --num-promoted 100
+python grape_pi.py ---cfg data/gastric_all_data/gastric-graphsage.yaml --threshold 0.9 --num-promoted 100
 ```
 See more details about the format of the `protein` and `protein interaction`. You can also change the 
 hyperparameters in the configuration file to optimize the model for your own data once you have a better 
