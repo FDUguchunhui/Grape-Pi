@@ -13,7 +13,6 @@ yacs = "^0.1.8"
 hydra-core = "^1.3.2"
 protobuf = "4.21"
 chardet = "^5.2.0"
-torch-geometric = "2.5.3"
 torch = "2.0.0"
 torch-sparse= {version="0.6.18", source="pyg-cpu"}
 #torch-scatter="2.1.2"
