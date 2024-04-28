@@ -133,15 +133,21 @@ saved in the root directory of the provided data path.
 
 To use this trained model for your own data, you only need to replace the `data` path with your own data path.
 
-For the best performance, it is recommended to train a new model with your own data.
-You can use the following command to train a new model with your own data. It will use "sageConv" as the 
-message-passing layer and hyperparameters that have been optimized for this task.
+For the best performance, it is recommended to train a new model with your own data. To train a new model, you just 
+need to run the same command without the `--checkpoint` argument.
+You can use the following command to train a new model with your own data. It will use predefined configuration file,
+which use "sageConv" as the 
+message-passing layer and hyperparameters that have been optimized for this task. Once the training is done, it will 
+be saved in the `results` folder by default. Go into the `results` folder, you can find a subfolder name after the 
+configuration file name, the ckpt file will be saved in this subfolder under "{random_seed}/ckpt" folder, where 
+{random_seed} is the random seed used for this training. 
 ```angular2html
 ### Train a new model with given hyper-parameters options
-```angular2html
-python graphgym.py --cfg data/gastric_all_data/gastric-graphsage.yaml
+python grape_pi.py ---cfg data/gastric_all_data/gastric-graphsage.yaml --data data/gastric_all_data --threshold 0.9 --num-promoted 100
 ```
-See more details about the format of the `protein` and `protein interaction` data requirement. 
+See more details about the format of the `protein` and `protein interaction`. You can also change the 
+hyperparameters in the configuration file to optimize the model for your own data once you have a better 
+understanding about what each hyperparameter does.
 
 ## GrapePi training framework
 ![GrapePi](figures/flowchart.jpg)
