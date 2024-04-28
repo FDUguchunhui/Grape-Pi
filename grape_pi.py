@@ -27,8 +27,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='GraphGym')
     parser.add_argument('--cfg', dest='cfg_file', type=str, required=True,
                         help='The configuration file path.')
-    parser.add_argument('--data', dest='data_file', type=str, required=True,
-                        help='The data file path.')
     parser.add_argument('--checkpoint', dest= 'checkpoint', type=str, default=None,
                         help='The checkpoint file path.')
     parser.add_argument('--threshold', dest='threshold', type=float, default=0.9,
@@ -37,9 +35,6 @@ if __name__ == '__main__':
                         help='The number, N, of proteins to be promoted '
                              'Top N Proteins will be selected based on the prediction probability from unconfident'
                              'proteins.')
-    parser.add_argument('--output', dest='output', type=str, default=None,
-                        help='The output file path to store the promoted proteins. If not provided, the results '
-                             'will be save to the root directory of data file.')
     parser.add_argument('opts', default=None, nargs=argparse.REMAINDER,
                         help='See graphgym/config.py for remaining options.')
 
@@ -68,7 +63,7 @@ if __name__ == '__main__':
 
 
     # Load all data without splitting validation and test set
-    dataset = ProteinDataset(root=args.data_file, rebuild=True,
+    dataset = ProteinDataset(root=cfg.dataset.dir, rebuild=True,
                                                  numeric_columns=cfg.dataset.numeric_columns,
                                                  label_column=cfg.dataset.label_column,
                                                  remove_unlabeled_data=False,
@@ -96,7 +91,7 @@ if __name__ == '__main__':
     # get the dictionary mapping from global node index to original protein accession
     # get the file in subdirectory "raw" of args.data and has "mapping" in the name
     # Construct the path to the "raw" subdirectory of args.data
-    raw_dir = os.path.join(args.data_file, 'raw')
+    raw_dir = os.path.join(cfg.dataset.dir, 'raw')
     # Use glob to get all files in the directory that have "mapping" in the name
     mapping = pd.read_csv(glob.glob(os.path.join(raw_dir, '*mapping*'))[0])
     mapping = dict(zip(mapping['integer_id'], mapping['protein_id']))
@@ -108,12 +103,12 @@ if __name__ == '__main__':
         # if no checkpoint is provided, retrain the model
         # run the graphgym.py script to train the model with provided configuration
         # create a directory to store the results that using the same as configuration file
-        output_path = os.path.join('results', args.cfg_file.split('/')[-1].replace('.yaml', ''))
-        os.makedirs(output_path, exist_ok=True)
-        subprocess.run(['python', 'graphgym.py', '--cfg', args.cfg_file, 'train.ckpt_clean', 'True', 'out_dir', output_path])
+        subprocess.run(['python', 'graphgym.py', '--cfg', args.cfg_file, 'train.ckpt_clean', 'True'])
 
         # load the last checkpoint
         # the path is output_path/0/ckpt/*.ckpt
+        output_path = os.path.join(cfg.out_dir, args.cfg_file.split('/')[-1].replace('.yaml', ''))
+        os.makedirs(output_path, exist_ok=True)
         checkpoint_dir = os.path.join(output_path,  cfg.seed, 'ckpt')
         checkpoint_file = glob.glob(os.path.join(checkpoint_dir, '*.ckpt'))[0]
         model.load_state_dict(torch.load(checkpoint_file)['state_dict'])
@@ -144,7 +139,7 @@ if __name__ == '__main__':
     # read the original protein data
     # get the file in subdirectory "raw" of args.data and has "protein" in the name
     # Construct the path to the "raw/protein" subdirectory of args.data
-    raw_dir = os.path.join(args.data_file, 'raw/protein')
+    raw_dir = os.path.join(cfg.dataset.dir, 'raw/protein')
     # list all files in the directory
     dat = pd.read_csv(glob.glob(f'{raw_dir}/[!.]*')[0])
     # get the name of first column
@@ -164,7 +159,7 @@ if __name__ == '__main__':
     # get the top N proteins to be promoted
     promoted_proteins = unconfident_protein.sort_values(by='pred_prob', ascending=False).head(args.num_promoted)
     if args.output is None:
-        output_dir = os.path.join(args.data_file, 'promoted_proteins.csv')
+        output_dir = os.path.join(cfg.dataset.dir, 'promoted_proteins.csv')
         promoted_proteins.to_csv(output_dir, index=False)
     else:
         promoted_proteins.to_csv(args.output, index=False)
