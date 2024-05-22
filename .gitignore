@@ -34,10 +34,11 @@ benchmark/results/
 
 
 data/*
-!data/yeast-LCQ/
-!data/yeast-LCQ-mRNA/
-!data/yeast-ORBI/
-!data/yeast-ORBI-mRNA/
+
+!data/yeast-LCQ/raw
+!data/yeast-ORBI/raw
+!data/gastric_all_data/raw
+#data/gastric_all_data/raw/embedding
 
 configs/*_grid_*
 # any pdf files

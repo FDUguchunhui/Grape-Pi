@@ -362,29 +362,6 @@ However, in case it is not generated automatically, you can manually aggregate t
 python agg_batch.py --dir results/protein-yeast-graphsage_grid_protein-yeast-graphsage
 ```
 
-## Post-training analysis
-
-## Rebuild the best model based on analysis result from batch experiment for protein prediction application
-
-```angular2html
-
-```
-
-# Find the optimal hyper-parameters for the best model
-
-```angular2html
-
-```
-
-# Make prediction on unconfident proteins
-
-```angular2html
-
-```
-
-
-
-
 ## Cite
 
 Please cite the following papers if you use this code in your own work::
