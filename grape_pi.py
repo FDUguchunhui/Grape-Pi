@@ -35,6 +35,8 @@ if __name__ == '__main__':
                         help='The number, N, of proteins to be promoted '
                              'Top N Proteins will be selected based on the prediction probability from unconfident'
                              'proteins.')
+    parser.add_argument('--output', dest='output', type=str, default=None,
+                        help='The output file path to save the promoted proteins.')
     parser.add_argument('opts', default=None, nargs=argparse.REMAINDER,
                         help='See graphgym/config.py for remaining options.')
 
@@ -60,7 +62,6 @@ if __name__ == '__main__':
     elif cfg.train.grape_pi == 'gcnconv':
     # raise NotImplementedError
         raise NotImplementedError('Only "graphsage" is implemented yet')
-
 
     # Load all data without splitting validation and test set
     dataset = ProteinDataset(root=cfg.dataset.dir, rebuild=True,
@@ -109,7 +110,7 @@ if __name__ == '__main__':
         # the path is output_path/0/ckpt/*.ckpt
         output_path = os.path.join(cfg.out_dir, args.cfg_file.split('/')[-1].replace('.yaml', ''))
         os.makedirs(output_path, exist_ok=True)
-        checkpoint_dir = os.path.join(output_path,  cfg.seed, 'ckpt')
+        checkpoint_dir = os.path.join(output_path,  str(cfg.seed), 'ckpt')
         checkpoint_file = glob.glob(os.path.join(checkpoint_dir, '*.ckpt'))[0]
         model.load_state_dict(torch.load(checkpoint_file)['state_dict'])
 
@@ -160,11 +161,12 @@ if __name__ == '__main__':
     promoted_proteins = unconfident_protein.sort_values(by='pred_prob', ascending=False).head(args.num_promoted)
     if args.output is None:
         output_dir = os.path.join(cfg.dataset.dir, 'promoted_proteins.csv')
-        promoted_proteins.to_csv(output_dir, index=False)
-    else:
-        promoted_proteins.to_csv(args.output, index=False)
 
+    else:
+        output_dir = args.output
+
+    promoted_proteins.to_csv(output_dir, index=False)
     # output message that the process completed and promoted proteins are saved
-    print(f'Top {args.num_promoted} proteins are saved in {args.output}')
+    print(f'Top {args.num_promoted} proteins are saved in {output_dir}')
 
 

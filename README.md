@@ -123,8 +123,7 @@ pip install torch_scatter torch_sparse torch_cluster torch_spline_conv -f https:
 
 ### Use pre-trained model to make prediction
 ```angular2html
-python grape_pi.py ---cfg data/gastric_all_data/gastric-graphsage.yaml --checkpoint 
-saved_results/gastric-graphsage/epoch=199-step=4800.ckpt --threshold 0.9 --num-promoted 100
+python grape_pi.py --cfg data/gastric_all_data/gastric-graphsage.yaml --checkpoint saved_results/gastric-graphsage/epoch=199-step=4800.ckpt --threshold 0.9 --num-promoted 100
 ```
 The above command will initialize the model that is defined in provided configuration files and  load the trained model from the checkpoint 
 file, make prediction on the unconfident proteins, 
