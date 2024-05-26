@@ -22,7 +22,8 @@ import logger
 import pandas as pd
 from custom_graphgym.loader.protein import ProteinDataset
 
-if __name__ == '__main__':
+
+def main():
 
     parser = argparse.ArgumentParser(description='GraphGym')
     parser.add_argument('--cfg', dest='cfg_file', type=str, required=True,
@@ -170,3 +171,6 @@ if __name__ == '__main__':
     print(f'Top {args.num_promoted} proteins are saved in {output_dir}')
 
 
+
+if __name__ == '__main__':
+    main()

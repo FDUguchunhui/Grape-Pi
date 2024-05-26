@@ -6,23 +6,38 @@ authors = ["Chunhui Gu <fduguchunhui@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "3.10.x"
+python = "~3.11.0"
+torch = "~2.1.0"
 numpy = "^1.26.4"
 pandas = "^2.2.2"
 yacs = "^0.1.8"
 hydra-core = "^1.3.2"
 protobuf = "4.21"
 chardet = "^5.2.0"
-torch = "^2.0.0"
-
-[tool.poetry.scripts]
-grapepi = "grape_pi.main"
+pytorch-lightning = "^2.2.5"
+h5py = "^3.11.0"
+ogb = "^1.3.6"
+overrides = "^7.7.0"
+psutil = "^5.9.8"
+pyparsing = "^3.1.2"
 
 
 [[tool.poetry.source]]
-name = "pyg-cpu"
-url = "https://data.pyg.org/whl/torch-2.0.0+cpu.html"
+name = "torch-wheels"
+url = "https://data.pyg.org/whl/torch-2.1.0+cpu.html"
+default = false
+secondary = false
+
+[[tool.poetry.source]]
+name = "PyPI"
+priority = "primary"
+
+[tool.poetry.scripts]
+grapepi = "grape_pi:main"
+
+
+
 
 [build-system]
-requires = ["poetry-core>=1.2.0"]
+requires = ["poetry-core>=1.8.3"]
 build-backend = "poetry.core.masonry.api"
