@@ -123,7 +123,7 @@ pip install torch_scatter torch_sparse torch_cluster torch_spline_conv -f https:
 
 ### Use pre-trained model to make prediction
 ```angular2html
-python grape_pi.py --cfg data/gastric_all_data/gastric-graphsage.yaml --checkpoint saved_results/gastric-graphsage/epoch=199-step=4800.ckpt --threshold 0.9 --num-promoted 100
+grapepi --cfg data/gastric_all_data/gastric-graphsage.yaml --checkpoint saved_results/gastric-graphsage/epoch=199-step=4800.ckpt --threshold 0.9 --num-promoted 100
 ```
 The above command will initialize the model that is defined in provided configuration files and  load the trained model from the checkpoint 
 file, make prediction on the unconfident proteins, 
@@ -135,7 +135,7 @@ to the path of your own data to make prediction on your own data.
 You can also overwrite data path by providing 
 additional argument in key and value format sequentially after the command. For example,
 ```angular2html
-python grape_pi.py ---cfg data/gastric_all_data/gastric-graphsage.yaml --checkpoint 
+grapepi ---cfg data/gastric_all_data/gastric-graphsage.yaml --checkpoint 
 saved_results/gastric-graphsage/epoch=199-step=4800.ckpt --threshold 0.9 --num-promoted 100 dataset.dir {YOUR_DATA_PATH}
 ```
 Replace `{YOUR_DATA_PATH}` with the path of your own data. Using this approach you can override any key-value pair 
@@ -151,7 +151,7 @@ configuration file name, the ckpt file will be saved in this subfolder under "{r
 {random_seed} is the random seed used for this training. 
 ```angular2html
 ### Train a new model with given hyper-parameters options
-python grape_pi.py ---cfg data/gastric_all_data/gastric-graphsage.yaml --threshold 0.9 --num-promoted 100
+grapepi ---cfg data/gastric_all_data/gastric-graphsage.yaml --threshold 0.9 --num-promoted 100
 ```
 See more details about the format of the `protein` and `protein interaction`. You can also change the 
 hyperparameters in the configuration file to optimize the model for your own data once you have a better 
