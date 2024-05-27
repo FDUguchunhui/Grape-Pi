@@ -4,8 +4,9 @@ out_dir: results
 metric_best: auc
 dataset: # need to delete file in processed folder if change args under dataset category
   name: protein
-  dir: data/single
+  dir: data/gastric_all_data
   rebuild: true
+  label_column: hard_label
   numeric_columns:
   - protein_probability
   - mRNA_TPM

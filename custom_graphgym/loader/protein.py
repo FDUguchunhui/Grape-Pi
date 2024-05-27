@@ -144,8 +144,12 @@ class ProteinDataset(InMemoryDataset):
         # had better save mapping somewhere else
         base_name = os.path.basename(protein_filename)
         name_without_suffix = os.path.splitext(base_name)[0]
-        pd.DataFrame(mapping.items(), columns=['protein_id', 'integer_id']).to_csv(
-            os.path.join(self.raw_dir, name_without_suffix + '_mapping.csv'), index=False)
+        mapping_df =  pd.DataFrame(mapping.items(), columns=['protein_id', 'integer_id'])
+        mapping_df['train_mask'] = data.train_mask.to(torch.int)
+        mapping_df['val_mask'] = data.val_mask.to(torch.int)
+        mapping_df['test_mask'] = data.test_mask.to(torch.int)
+        mapping_df.to_csv(
+            os.path.join(os.path.dirname(self.raw_dir), name_without_suffix + '_mapping.csv'), index=False)
 
         return data
 

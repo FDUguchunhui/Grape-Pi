@@ -112,7 +112,7 @@ specific CUDA version or cpu.
 pip install torch_scatter torch_sparse torch_cluster torch_spline_conv -f https://data.pyg.org/whl/torch-2.1.0+${CUDA}.html
 ```
 
-If you are using pytorch=2.0.0 cpu only version, run
+If you are using pytorch=2.1.0 cpu only version, run
 ```angular2html
 pip install torch_scatter torch_sparse torch_cluster torch_spline_conv -f https://data.pyg.org/whl/torch-2.1.0+cpu.html
 ```
